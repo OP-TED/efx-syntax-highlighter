@@ -1,10 +1,226 @@
+@top templateFile { (commentLine | declarationLine | legacyTemplateLine | templateLine)*  }
 
-@top Program { StatementList }
-StatementList { Statement | StatementList Statement }
-Statement { Identifier "=" Expression }
-Expression { Identifier | Number }
+declarationLine { varDecl | indexDecl | FuncDecl }
+
+varDecl {
+  LET localVarDecl ";" Comment? EOL
+}
+
+indexDecl {
+  LET Type Variable (INDEX expression)? (BY expression)? ";" Comment? EOL  
+}
+
+FuncDecl {
+  LET Type Variable Parenthesis parameters Parenthesis Operator expression ";" Comment? EOL
+}
+
+legacyTemplateLine {
+  NumericLiteral? LB ContextBlock RB Fragment+ Comment? EOL
+}
+
+ContextBlock {
+  localVarDecl (Coma localVarDecl)*
+}
+
+localVarDecl {
+  (Type Variable Operator)? expression
+}
+
+templateLine {
+  NumericLiteral? (WITH ContextBlock)? (WHEN expression)? (DISPLAY Fragment+)? (OTHERWISE Fragment+)? (INVOKE item)? ";" Comment? EOL
+}
+
+
+Fragment {
+  (TextBlock | ExpressionBlock | LabelBlock | HyperlinkBlock ) 
+}
+
+ExpressionBlock { DOLLAR LB expression RB }
+
+HyperlinkBlock { AT LB expression RB }
+
+LabelBlock {
+  SHARP LB (LabelKeyword Pipe)? (LabelKeyword Pipe)? AssetId* RB
+}
+
+AssetId { FieldId | Identifier | LabelKeyword | Keyword | "-" }
+
+TextBlock { FreeText | Operator | Identifier | LabelKeyword | Keyword | DollarValue | SharpValue }
+
+commentLine { Comment EOL }
+
+parameters { parameter (Coma parameter)* }
+
+parameter {
+  Type? (Variable | Identifier | (FieldId | NodeId) predicate? | literal)
+}
+
+expression { 
+  (item | Parenthesis item+ Parenthesis)*
+}
+
+
+literal { StringLiteral | NumericLiteral | BooleanLiteral | DurationLiteral }
+
+functionCall {
+  (BuiltInFunction | Variable) Parenthesis parameters? Parenthesis
+}
+
+predicate { Bracket expression Bracket }
+
+item {
+  functionCall
+  | FieldId | NodeId
+  |  Keyword |
+  Operator 
+  | Literal
+  | SharpValue 
+}
 
 @tokens {
-  Identifier { "([a-zA-Z_][a-zA-Z0-9_]*)" }
-  Number { "([0-9]+)" }
+  EOL { "\n" | "\r\n" | "\r" }
+  LET { "LET" | "let" }
+  WITH { "WITH" | "with" }
+  WHEN {  "WHEN" | "when" }
+  OTHERWISE { "OTHERWISE" | "otherwise" }
+  DISPLAY { "DISPLAY" | "display" }
+  INVOKE {  "INVOKE" | "invoke" }
+  INDEX {  "INDEX" | "index" }
+  BY {  "BY" | "by" }
+  SharpValue { SHARP "value" }
+  DollarValue { DOLLAR "value" }
+
+  SHARP { "#" }
+  DOLLAR { "$" }
+  AT { "@" }
+  
+
+  LB { "{" }
+  RB { "}" }
+  LP { "(" }
+  RP { ")" }
+
+  Pipe { "|" }
+  
+  // Keywords - All EFX keywords from the lexer
+  Keyword {    
+    // Logical operators
+    "and" | "AND" |
+    "or" | "OR" |
+    "not" | "NOT" |
+    
+    // Comparison/test keywords
+    "is" | "IS" |
+    "in" | "IN" |
+    "like" | "LIKE" |
+    "present" | "PRESENT" |
+    "empty" | "EMPTY" |
+    "unique" | "UNIQUE" |
+    
+    // Quantifiers
+    "every" | "EVERY" |
+    "some" | "SOME" |
+    "satisfies" | "SATISFIES" |
+    
+    // Conditional keywords
+    "if" | "IF" |
+    "then" | "THEN" |
+    "else" | "ELSE" |
+    
+    // Loop/iteration keywords
+    "for" | "FOR" |
+    "return" | "RETURN" |
+    
+   
+    // XPath-like axis keywords
+    "preceding" | "preceding-sibling" |
+    "following" | "following-sibling" |
+    "ancestor" | "ancestor-or-self" |
+    "descendant" | "descendant-or-self" |
+    "child" | "parent" | "self"
+    
+  }
+
+  BuiltInFunction {
+    "count" | "substring" | "string" |
+    "contains" | "starts-with" | "ends-with" |
+    "string-length" | "sum" | "format-number" |
+    "upper-case" | "lower-case" |
+    "concat" | "string-join" |
+    "day-time-duration" | "year-month-duration" |
+    "add-measure" | "subtract-measure" |
+    "distinct-values" | "value-union" |
+    "value-intersect" | "value-except" |
+    "sequence-equal" |
+    "preferred-language" | "preferred-language-text"
+  }
+
+  LabelKeyword {
+    // Asset types
+    "business-term" | "field" | "node" |
+    "group" | "view" | "notice" |
+    "codelist" | "code" |
+    "auxiliary" | "rule" | "expression" |
+    "interval" | "pattern" |
+    
+    // Label types
+    "name" | "when-true" | "when-false" |
+    "description" | "hint" | "template" | "text"
+  }
+  
+  
+  // Literals
+  Literal { StringLiteral | NumericLiteral | BooleanLiteral | DateLiteral | TimeLiteral | DurationLiteral }
+  StringLiteral { '"' (!["\\] | "\\" _)* '"' | "'" (!['\\] | "\\" _)* "'" }
+  NumericLiteral { @digit+ ("." @digit+)? }
+  BooleanLiteral { "true" | "false" | "TRUE" | "FALSE" | "ALWAYS" | "always" | "NEVER" | "never" }
+  DateLiteral { @digit @digit @digit @digit '-' @digit @digit '-' @digit @digit ((('+' | '-') @digit @digit Colon @digit @digit) | 'Z') }
+  TimeLiteral { @digit @digit Colon @digit @digit Colon @digit @digit ((("+" | "-") @digit @digit Colon @digit @digit) | "Z") }
+  DurationLiteral { "-"? "P" @digit+ ("W" | "D" | "Y" | "M") }
+  
+  // Special pattern for data type declarations - matches type name + colon as one token
+  Type { ("indicator" | "number" | "text" | "code" | "date" | "time" | "measure" | "context") Colon }
+
+ 
+  // Identifiers - Field IDs (with digits) and Node IDs (without digits)
+  FieldId { ("BT" | "OPP" | "OPT" | "OPA") "-" @digit+ ("(" $[a-zA-Z_] ")")? ("-" $[a-zA-Z_] $[a-zA-Z0-9_]*)* }
+  NodeId { "ND-" $[a-zA-Z_] $[a-zA-Z0-9_-]* }
+  Variable { ("$" | "?") $[a-zA-Z_] $[a-zA-Z0-9_-]* }
+  Identifier { $[a-zA-Z_] $[a-zA-Z0-9_-]* }
+
+  // Comments - MUST come before Operator in precedence
+  Comment { "//" ![\r\n]* }
+  
+  // Operators
+  Operator { "==" | "!=" | ">=" | "<=" | ">" | "<" | "+" | "-" | "*" | "/" | "%" | "=" | "::" | ".." }
+
+ Parenthesis {
+   "(" | ")"
+ }
+  Brace { LB | RB }
+
+  Bracket { "[" | "]"}
+
+  Punctuation { Coma | Colon | "." | "#" }
+  
+  // Delimiters
+  Delimiter {  Bracket | Brace | Parenthesis | Pipe }
+
+  Coma { "," }
+
+  Colon { ":" }
+  
+  // Space
+  space { $[\u0020\u0009]+ }
+
+  FreeText { ![\u0020\u0009\r\n#$@{};]+ }
+  
+  // DurationLiteral must come before Identifier in precedence
+  @precedence { Comment, LET, WITH, WHEN, OTHERWISE, DISPLAY, INVOKE, INDEX, BY, SharpValue, Type, BuiltInFunction, LabelKeyword, Keyword, Literal, BooleanLiteral. DurationLiteral, NodeId, FieldId, Variable, Identifier, Operator, Punctuation, LB, RB, LP, RP, Delimiter, Coma, Pipe, FreeText }
 }
+
+@skip { space }
+        
+@detectDelim
+
+@external propSource efxHighlighting from "./efxTheme.js"

@@ -1,10 +1,11 @@
 
-// Build script to generate parser from grammar
-const { execSync } = require('child_process');
-const path = require('path');
-const fs = require('fs');
+// Build script to generate parser from grammar (ESM)
+import { execSync } from 'child_process';
+import path from 'path';
+import fs from 'fs';
+import { fileURLToPath } from 'url';
 
-
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const grammarFile = path.join(__dirname, '../grammar/efx.grammar');
 const srcDir = path.join(__dirname, '../src');
 const distDir = path.join(__dirname, '../dist');
@@ -22,6 +23,12 @@ try {
     if (fs.existsSync(srcFile)) {
       fs.copyFileSync(srcFile, distFile);
     }
+  }
+  // Copy efxTheme.js for Lezer external propSource
+  const themeSrc = path.join(srcDir, 'efxTheme.js');
+  const themeDist = path.join(distDir, 'efxTheme.js');
+  if (fs.existsSync(themeSrc)) {
+    fs.copyFileSync(themeSrc, themeDist);
   }
   console.log('Copied source files to dist/.');
 } catch (err) {

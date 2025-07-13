@@ -1,14 +1,12 @@
 // CodeMirror 6 language support for efx
-import {LRLanguage, LanguageSupport} from '@codemirror/language';
-import {parser} from '../dist/efx-parser';
+import { LRLanguage, LanguageSupport } from "@codemirror/language";
+import { parser } from "../dist/efx-parser";
+import { efxHighlighting } from "./efxTheme";
 
 export const efxLanguage = LRLanguage.define({
-  parser,
-  languageData: {
-    commentTokens: {line: '//'}
-  }
+  parser
 });
 
 export function efx() {
-  return new LanguageSupport(efxLanguage);
+  return new LanguageSupport(efxLanguage, [efxHighlighting]);
 }
