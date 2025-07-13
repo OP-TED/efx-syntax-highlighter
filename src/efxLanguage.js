@@ -1,6 +1,6 @@
 // CodeMirror 6 language support for efx
 import {LRLanguage, LanguageSupport} from '@codemirror/language';
-import {parser} from './efx-parser';
+import {parser} from '../dist/efx-parser';
 
 export const efxLanguage = LRLanguage.define({
   parser,
