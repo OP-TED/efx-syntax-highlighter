@@ -1,19 +1,35 @@
 {
-  "name": "efx-syntax-highlighter",
+  "name": "@op-ted/efx-syntax-highlighter",
   "version": "0.1.0",
-  "description": "Lezer-based parser and CodeMirror 6 language support for efx syntax highlighting.",
+  "description": "Lezer-based parser and CodeMirror 6 language support for EFX syntax highlighting.",
   "main": "dist/index.js",
   "exports": {
     ".": "./dist/index.js"
   },
-  "files": ["dist"],
+  "files": [
+    "dist",
+    "!dist/**/*.map",
+    "!dist/demo.js",
+    "!dist/highlight.js"
+  ],
   "scripts": {
     "build": "node scripts/build.js",
     "test": "node test/run-tests.js"
   },
   "keywords": ["efx", "codemirror", "lezer", "syntax-highlighting"],
-  "author": "",
+  "author": {
+    "name": "Publications Office of the European Union",
+    "email": "OP-TED-DEVOPS@publications.europa.eu"
+  },
   "license": "EUPL-2.0",
+  "homepage": "https://ted.europa.eu/",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/OP-TED/efx-syntax-highlighter.git"
+  },
+  "bugs": {
+    "url": "https://github.com/OP-TED/efx-syntax-highlighter/issues"
+  },
   "type": "module",
   "dependencies": {
     "@codemirror/language": "^6.6.0",

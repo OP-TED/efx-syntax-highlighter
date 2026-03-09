@@ -10,12 +10,12 @@ A minimal JavaScript package providing Lezer-based parsing and CodeMirror 6 lang
 ## Usage
 Install via npm:
 ```bash
-npm install efx-syntax-highlighter
+npm install @op-ted/efx-syntax-highlighter
 ```
 
 Import and use in CodeMirror 6:
 ```js
-import { efx, efxHighlightStyle } from 'efx-syntax-highlighter';
+import { efx, efxHighlightStyle } from '@op-ted/efx-syntax-highlighter';
 
 const editor = new EditorView({
   extensions: [efx(), efxHighlightStyle]
