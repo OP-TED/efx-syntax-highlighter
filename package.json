@@ -16,7 +16,12 @@
     "build": "node scripts/build.js",
     "test": "node test/run-tests.js"
   },
-  "keywords": ["efx", "codemirror", "lezer", "syntax-highlighting"],
+  "keywords": [
+    "efx",
+    "codemirror",
+    "lezer",
+    "syntax-highlighting"
+  ],
   "author": {
     "name": "Publications Office of the European Union",
     "email": "OP-TED-DEVOPS@publications.europa.eu"
@@ -25,12 +30,17 @@
   "homepage": "https://ted.europa.eu/",
   "repository": {
     "type": "git",
-    "url": "https://github.com/OP-TED/efx-syntax-highlighter.git"
+    "url": "git+https://github.com/OP-TED/efx-syntax-highlighter.git"
   },
   "bugs": {
     "url": "https://github.com/OP-TED/efx-syntax-highlighter/issues"
   },
   "type": "module",
+  "publishConfig": {
+    "access": "public",
+    "registry": "https://registry.npmjs.org/",
+    "provenance": true
+  },
   "dependencies": {
     "@codemirror/language": "^6.6.0",
     "@codemirror/state": "^6.2.0",
