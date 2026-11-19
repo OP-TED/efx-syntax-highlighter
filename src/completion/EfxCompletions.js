@@ -63,14 +63,9 @@ export class EfxCompletions {
     return QUIET.has(node.name) && node.from < pos;
   }
 
-  /** The words, but a phrase (OTHERWISE DISPLAY) only in the spellings whose two words agree in case. */
   static #wordOptions(expected) {
-    const agrees = (word) => {
-      const [first, second = first] = word.split(' ');
-      return (first === first.toUpperCase()) === (second === second.toUpperCase());
-    };
     const expressionStarts = expected.has(terms.OpenParenthesis);
-    return expected.words().filter(agrees).map((word) => ITEMS.optionFor(word, expressionStarts));
+    return expected.words().map((word) => ITEMS.optionFor(word, expressionStarts));
   }
 
   static #symbolOptions(expected, state) {

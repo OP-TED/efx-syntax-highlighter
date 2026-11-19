@@ -71,7 +71,7 @@ const rules = (text) => Editor.at('rules', `---- STAGE 1a ----\nWITH ND-Root ASS
 
 // The places where the list's items are offered: the functions as calls, TRUE, FALSE, ALWAYS and
 // NEVER at the start of an expression, the type words in a declaration, the properties after a colon.
-const LIST_PLACES = [expression('‸'), template('let ‸'), expression('BT-01-notice:‸')];
+const LIST_PLACES = [expression('‸'), template('LET ‸'), expression('BT-01-notice:‸')];
 
 /**
  * The words of a file of a kind that the lexer reads from its tables, each with an editor whose
@@ -130,28 +130,28 @@ const CHECKS = {
   },
   'a template line starts with its words': () => {
     assert.deepEqual(template('‸').labels().sort(),
-      ['DISPLAY', 'INVOKE', 'LET', 'WHEN', 'WITH', 'display', 'invoke', 'let', 'when', 'with']);
+      ['DISPLAY', 'INVOKE', 'LET', 'WHEN', 'WITH']);
   },
-  'after a template, the words that go on, a phrase in one case': () => {
+  'after a template, the words that go on': () => {
     assert.deepEqual(template('1 WHEN BT-01-notice is present DISPLAY abc ‸').labels().sort(),
-      ['OTHERWISE', 'OTHERWISE DISPLAY', 'WHEN', 'otherwise', 'otherwise display', 'when']);
+      ['OTHERWISE', 'OTHERWISE DISPLAY', 'WHEN']);
   },
   'a rule offers its clauses': () => {
     assert.deepEqual(rules('BT-01-notice is present AS ‸').labels().sort(), ['ERROR', 'INFO', 'WARNING']);
     assert.ok(rules('BT-01-notice is present ‸').labels().includes('AS'));
   },
   'a declaration offers the types': () => {
-    const labels = template('let ‸').labels();
+    const labels = template('LET ‸').labels();
     for (const label of ['text', 'number', 'indicator', 'date', 'time', 'duration']) {
       assert.ok(labels.includes(label), label);
     }
-    assert.deepEqual(template('let ‸').option('text'), { label: 'text', type: 'keyword', detail: 'TEXT' });
+    assert.deepEqual(template('LET ‸').option('text'), { label: 'text', type: 'keyword', detail: 'TEXT' });
   },
   'the variables a place can use': () => {
     const variables = (editor) => editor.labels().filter((label) => label.startsWith('$'));
     assert.deepEqual(variables(template('1 {ND-Root} ${for text:$x in BT-01-notice return $‸')), ['$x']);
     assert.deepEqual(variables(template('1 {ND-Root} ${for text:$x in BT-01-notice return 1} ${$‸')), []);
-    assert.deepEqual(variables(template('let text:$t = 1;\n1 {ND-Root} ${$‸')), ['$t']);
+    assert.deepEqual(variables(template('LET text:$t = 1;\n1 {ND-Root} ${$‸')), ['$t']);
     assert.deepEqual(variables(Editor.at('expression', '{ND-Root, text:$p} ${$‸')), ['$p']);
   },
   'after WITH, the node ids and the field ids': () => {
@@ -187,7 +187,7 @@ const CHECKS = {
       ...wordsIn('rules', 'corpus/validation/stage-4m.efx')];
     const missing = found.filter(({ word, editor }) => !editor.labels().includes(word)).map(({ word, editor }) => `${word} at ${editor.pos - 1}`);
     assert.deepEqual(missing, []);
-    assert.equal(found.length, 831);
+    assert.equal(found.length, 833);
   },
 };
 

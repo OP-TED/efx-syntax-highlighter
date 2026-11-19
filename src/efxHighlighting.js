@@ -6,8 +6,8 @@ import { styleTags, tags as t } from "@lezer/highlight";
 // the node and its parent (Parent/Node). A node that is not listed is plain text.
 export const EFX_STYLES = {
   // The words that start a line, a part of a line or a clause of a rule, and the headers.
-  "Let With When Otherwise Display Invoke Index By Compute Select": t.keyword,
-  "Endpoint ApiEndpointDeclaration/At Call Api On OnErrorClause/Error": t.keyword,
+  "Let With EVERY When Otherwise Display Invoke Index By Compute Select": t.keyword,
+  "Endpoint AT Call Api On OnErrorClause/Error": t.keyword,
   "Assert Report OtherwiseAssert OtherwiseReport As FOR IN Scope": t.keyword,
   "IncludeDirective SummarySectionHeader NavigationSectionHeader StageHeaderStart StageHeaderEnd": t.keyword,
 
@@ -39,10 +39,10 @@ export const EFX_STYLES = {
   "TrimLeftFunction TrimRightFunction PadLeftFunction PadRightFunction RepeatFunction ReplaceFunction": t.function(t.keyword),
   "ReplaceRegexFunction UrlEncodeFunction CapitalizeFirstFunction ConcatFunction StringJoinFunction": t.function(t.keyword),
   "CurrentDateFunction CurrentTimeFunction DayTimeDurationFunction YearMonthDurationFunction": t.function(t.keyword),
-  "AddDuration SubtractDuration DistinctValuesFunction CountDuplicatesFunction GetDuplicatesFunction": t.function(t.keyword),
-  "UnionFunction IntersectFunction ExceptFunction SequenceEqualFunction SortFunction ReverseFunction": t.function(t.keyword),
+  "AddDurationFunction SubtractDurationFunction DistinctValuesFunction CountDuplicatesFunction": t.function(t.keyword),
+  "GetDuplicatesFunction ValueUnionFunction ValueIntersectFunction ValueExceptFunction SequenceEqualFunction": t.function(t.keyword),
   "SubsequenceFunction IndexOfFunction PreferredLanguageFunction PreferredLanguageTextFunction": t.function(t.keyword),
-  "SplitFunction": t.function(t.keyword),
+  "SortFunction ReverseFunction SplitFunction": t.function(t.keyword),
 
   // Literals, and the notice types of a rule and the path of an include.
   "StringLiteral UuidV4Literal IntegerLiteral DecimalLiteral True False Always Never DateLiteral TimeLiteral": t.literal,
@@ -74,7 +74,7 @@ export const EFX_STYLES = {
   "Assignment Comparison Plus Minus Star Slash Percent ColonColon": t.operator,
   "OpenParenthesis CloseParenthesis OpenBracket CloseBracket Pipe Colon Dot DotDot Ellipsis": t.punctuation,
   "AttributeReference/Slash AttributeExpression/Slash": t.punctuation,
-  "StartExpressionBlock StartLabelBlock StartHyperlinkBlock StartSelectorBlock EndBlock": t.bracket,
+  "StartContextBlock StartExpressionBlock StartLabelBlock StartHyperlinkBlock StartSelectorBlock EndBlock": t.bracket,
   Comment: t.lineComment,
   Identifier: t.name,
 };

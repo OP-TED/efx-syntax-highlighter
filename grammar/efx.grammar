@@ -27,10 +27,8 @@
 
 // A single expression with its context, as the toolkit reads one (singleExpression in Efx.g4).
 @top SingleExpression {
-  StartExpressionBlock (FieldId | NodeId | Identifier) (Comma ParameterList)? EndBlock ExpressionBlock |
-  With (FieldId | NodeId | Identifier) (Comma ParameterList)? Compute expression |
-  StartExpressionBlock (FieldId | NodeId | Identifier) (Comma ParameterList)? EndBlock SelectorBlock |
-  With (FieldId | NodeId | Identifier) (Comma ParameterList)? Select Selection
+  StartContextBlock (FieldId | NodeId | Identifier) (Comma ParameterList)? EndBlock (ExpressionBlock | SelectorBlock) |
+  With (FieldId | NodeId | Identifier) (Comma ParameterList)? (Compute expression | Select Selection)
 }
 
 // ---- Expressions ----
@@ -68,29 +66,27 @@ TypeDeclaration { PrimitiveType Star? }
 PrimitiveType { Text | Indicator | Number | Date | Time | Duration }
 
 // The order of the alternatives of expression in Efx.g4, highest first; then, in templates, a
-// field's block before a computed one (fieldBlock) and a text block that takes all the text next
-// to it (text).
+// field's block before a computed one (fieldBlock).
 @precedence {
   postfix @left,
   times @left,
   plus @left,
-  compare @left,
-  inList @left,
+  membership @left,
   uniqueIn @left,
   empty @left,
-  distinct @left,
+  duplicates @left,
   like @left,
   present @left,
+  compare @left,
   and @left,
   or @left,
   prefix @right,
-  fieldBlock,
-  text
+  fieldBlock
 }
 
 expression[@isGroup=Expression] {
   ParenthesizedExpression { OpenParenthesis expression CloseParenthesis } |
-  FilteredExpression { expression !postfix OpenBracket expression CloseBracket } |
+  PredicateOrLookupExpression { expression !postfix OpenBracket expression CloseBracket } |
   IndexedExpression { expression !postfix OpenBracket At expression CloseBracket } |
   AttributeExpression { expression !postfix AttributeSlash AtPrefix UnquotedIdentifier } |
   FieldFromContextExpression { expression !postfix ColonColon LinkedFieldReference } |
@@ -100,27 +96,26 @@ expression[@isGroup=Expression] {
   RawValueExpression { expression !postfix ~linkColon Colon RawValue } |
   PreferredLanguageExpression { expression !postfix ~linkColon Colon PreferredLanguage } |
   PreferredLanguageTextExpression { expression !postfix ~linkColon Colon PreferredLanguageText } |
-  // Divergence until P2.3 (plan): deciding at the slash, `2 * 3 / 4` groups as `2 * (3 / 4)`.
   MultiplicativeExpression { expression !times (Star | Slash | Percent) expression } |
   AdditiveExpression { expression !plus (Plus | Minus) expression } |
-  ComparisonExpression { expression !compare Comparison expression } |
-  InListCondition { expression !inList Not? In expression } |
+  MembershipCondition { expression !membership Not? In expression } |
   UniqueValueCondition { expression !uniqueIn Is Not? Unique In expression } |
   EmptinessCondition { expression !empty Is Not? Empty } |
-  DistinctCondition { expression !distinct Has No? Duplicates } |
+  DuplicatesCondition { expression !duplicates Has No? Duplicates } |
   LikePatternCondition { expression !like Not? Like StringLiteral } |
   PresenceCondition { expression !present Is Not? Present } |
+  ComparisonExpression { expression !compare Comparison expression } |
   LogicalAndCondition { expression !and And expression } |
   LogicalOrCondition { expression !or Or expression } |
   ConditionalExpression { If expression Then expression Else !prefix expression } |
   QuantifiedExpression { (Every | Some) IteratorList Satisfies !prefix expression } |
-  SequenceFromIteration { For IteratorList Return Distinct? !prefix expression } |
-  List { OpenBracket expression (Comma expression)* CloseBracket } |
+  IterationExpression { For IteratorList Return Distinct? !prefix expression } |
+  ListExpression { OpenBracket expression (Comma expression)* CloseBracket } |
   LiteralExpression { Literal } |
   ReferenceExpression { Reference } |
   FieldPropertyExpression { fieldProperty } |
   CodelistExpression { CodelistReference } |
-  FunctionExpression { BuiltInFunction }
+  BuiltInFunctionExpression { BuiltInFunction }
 }
 
 IteratorList { iteratorExpression (Comma iteratorExpression)* }
@@ -212,7 +207,7 @@ stringFunction {
 }
 
 dateFunction {
-  call<Date, one> | call<AddDuration, two> | call<SubtractDuration, two> | CurrentDateFunction OpenParenthesis CloseParenthesis
+  call<Date, one> | call<AddDurationFunction, two> | call<SubtractDurationFunction, two> | CurrentDateFunction OpenParenthesis CloseParenthesis
 }
 
 timeFunction { call<Time, one> | CurrentTimeFunction OpenParenthesis CloseParenthesis }
@@ -220,8 +215,8 @@ timeFunction { call<Time, one> | CurrentTimeFunction OpenParenthesis CloseParent
 durationFunction { call<DayTimeDurationFunction, one> | call<YearMonthDurationFunction, one> }
 
 sequenceFunction {
-  call<DistinctValuesFunction, one> | call<GetDuplicatesFunction, one> | call<UnionFunction, two> |
-  call<IntersectFunction, two> | call<ExceptFunction, two> | call<SortFunction, one> | call<ReverseFunction, one> |
+  call<DistinctValuesFunction, one> | call<GetDuplicatesFunction, one> | call<ValueUnionFunction, two> |
+  call<ValueIntersectFunction, two> | call<ValueExceptFunction, two> | call<SortFunction, one> | call<ReverseFunction, one> |
   call<SubsequenceFunction, two (Comma expression)?> | call<SplitFunction, two>
 }
 
@@ -251,7 +246,7 @@ ContextVariableInitializer {
 // the stages, read the same (~include).
 includeDirective { IncludeDirective IncludePath ~include }
 
-ApiEndpointDeclaration { Endpoint StringLiteral (At StringLiteral)? Semicolon }
+ApiEndpointDeclaration { Endpoint StringLiteral (AT StringLiteral)? Semicolon }
 
 DynamicFunctionDeclaration {
   Let Dynamic Colon FunctionPrefix UnquotedIdentifier OpenParenthesis ParameterList? CloseParenthesis Call Api
@@ -271,7 +266,7 @@ RuleSet {
   WithClause ConditionalRules FallbackRule Semicolon?
 }
 
-WithClause { With ContextDeclarationBlock }
+WithClause { With EVERY? ContextDeclarationBlock }
 
 // A run of conditional rules is read once, then the token after it tells whether it starts the rules
 // or is the conditional rules before a fallback. The run has no node, so the trees are as in Efx.g4.
@@ -341,7 +336,7 @@ DictionaryKeyClause { By expression }
 
 TemplateLine {
   Indentation? OutlineNumber? (With ContextDeclarationBlock)? (ChooseTemplate | DisplayTemplate | InvokeTemplate) Semicolon |
-  Indentation? OutlineNumber? StartExpressionBlock ContextDeclarationBlock EndBlock template CRLF
+  Indentation? OutlineNumber? StartContextBlock ContextDeclarationBlock EndBlock template CRLF
 }
 
 TemplateDeclaration { Indentation? Let TemplateDefinition (ChooseTemplate | DisplayTemplate | InvokeTemplate) Semicolon }
@@ -352,19 +347,12 @@ template { templateFragment }
 
 templateFragment {
   SecondaryTemplate { LineBreak templateFragment? } |
-  TextTemplate { TextBlock templateFragment? } |
-  LabelTemplate { labelBlock templateFragment? } |
-  ExpressionTemplate { formattedExpressionBlock templateFragment? } |
-  LinkedTextTemplate { LinkedTextBlock templateFragment? } |
-  LinkedLabelTemplate { LinkedLabelBlock templateFragment? } |
-  LinkedExpressionTemplate { LinkedExpressionBlock templateFragment? }
+  TextTemplate { TextBlock LinkBlock? templateFragment? } |
+  LabelTemplate { labelBlock LinkBlock? templateFragment? } |
+  ExpressionTemplate { formattedExpressionBlock LinkBlock? templateFragment? }
 }
 
 LinkBlock { StartHyperlinkBlock expression EndBlock }
-
-LinkedTextBlock { TextBlock LinkBlock }
-LinkedLabelBlock { labelBlock LinkBlock }
-LinkedExpressionBlock { formattedExpressionBlock LinkBlock }
 
 formattedExpressionBlock {
   FieldExpressionBlock { StartExpressionBlock FieldId !fieldBlock FormatOptions? EndBlock } |
@@ -372,32 +360,30 @@ formattedExpressionBlock {
   ContextFieldExpressionBlock { ShorthandFieldValueReferenceFromContextField }
 }
 
-FormatOptions { Pipe FormatSpecifier FormatNoUnit? | Pipe FormatNoUnit | Pipe FormatNoFormatting }
+FormatOptions { Pipe FormatDecimals FormatNoUnit? | Pipe FormatStyle | Pipe FormatNoUnit | Pipe FormatNoFormatting }
 
-FormatSpecifier { FormatDecimals | FormatShort | FormatMedium | FormatLong }
+FormatStyle { FormatShort | FormatMedium | FormatLong }
 
 LineBreak { NewLine }
 
-TextBlock {
-  (Whitespace | FreeText | OtherEscapeSequence | CharacterReference)
-  (!text (Whitespace | FreeText | OtherEscapeSequence | CharacterReference))*
-}
+TextBlock { Whitespace | FreeText | OtherEscapeSequence | CharacterReference }
 
 @skip {} {
   labelBlock {
-    StandardLabelReference { StartLabelBlock assetType Pipe labelType Pipe AssetId (Semicolon Pluraliser)? EndBlock } |
-    ComputedLabelReference { StartLabelBlock ExpressionBlock (Semicolon Pluraliser)? EndBlock } |
-    ShorthandBtLabelReference { StartLabelBlock labelType Pipe BtId (Semicolon Pluraliser)? EndBlock } |
-    ShorthandFieldLabelReference { StartLabelBlock labelType Pipe FieldId (Semicolon Pluraliser)? EndBlock } |
-    ShorthandLabelReferenceFromContext { StartLabelBlock LabelType (Semicolon Pluraliser)? EndBlock } |
-    ShorthandIndirectLabelReference { StartLabelBlock FieldId (Semicolon Pluraliser)? EndBlock } |
+    LabelReference { StartLabelBlock labelId (Semicolon Pluraliser)? EndBlock } |
     // The alternative and its one token have the same name; as in ANTLR's tree, the node holds the token.
     ShorthandIndirectLabelReferenceFromContextField { sharpValue }
   }
 
-  // An expression block in a label may be the asset type or the label type (~labelExpression).
-  assetType { AssetType | ExpressionBlock ~labelExpression }
-  labelType { LabelType | ExpressionBlock ~labelExpression }
+  labelId {
+    StandardLabelId { AssetType Pipe labelType Pipe AssetId } |
+    ShorthandLabelId { LabelType Pipe (BtId | FieldId) } |
+    ShorthandLabelIdFromContext { LabelType } |
+    ShorthandIndirectLabelId { FieldId } |
+    LabelIdStartingWithExpressionBlock { ExpressionBlock (Pipe (labelType Pipe AssetId | BtId | FieldId))? }
+  }
+
+  labelType { LabelType | ExpressionBlock }
   AssetId { BtId | FieldId | otherAssetId | ExpressionBlock }
   otherAssetId { OtherAssetId | AssetType | LabelType }
   Pluraliser { ExpressionBlock }
@@ -433,7 +419,7 @@ FunctionDeclaration {
   FormatShort, FormatMedium, FormatLong, FormatNoUnit, FormatNoFormatting,
   With, Compute, Select, Let, When, Otherwise, Display, Invoke, Index, By, Template, Dynamic,
   And, Or, Is, In, Like, Present, Empty, Unique, Has, No, Duplicates, Every, Some, Satisfies, If, Then, Else, For, Return,
-  Distinct, Always, Never, True, False, At, Not, Text, Number, Indicator, Date, Time, Duration, ContextType,
+  Distinct, Always, Never, True, False, At, AT, EVERY, Not, Text, Number, Indicator, Date, Time, Duration, ContextType,
   CountFunction, SubstringFunction, SubstringBeforeFunction, SubstringAfterFunction, ContainsFunction, StartsWithFunction,
   EndsWithFunction, StringLengthFunction, IndexOfSubstringFunction, SumFunction, MinFunction, MaxFunction, AverageFunction,
   AbsoluteFunction, RoundFunction, RoundDownFunction, RoundUpFunction, YearFunction, MonthFunction, DayFunction,
@@ -442,8 +428,8 @@ FunctionDeclaration {
   NormalizeSpaceFunction, TrimFunction, TrimLeftFunction, TrimRightFunction, PadLeftFunction, PadRightFunction,
   RepeatFunction, ReplaceFunction, ReplaceRegexFunction, UrlEncodeFunction, CapitalizeFirstFunction, ConcatFunction,
   StringJoinFunction, CurrentDateFunction, CurrentTimeFunction, DayTimeDurationFunction, YearMonthDurationFunction,
-  AddDuration, SubtractDuration, DistinctValuesFunction, CountDuplicatesFunction, GetDuplicatesFunction, UnionFunction,
-  IntersectFunction, ExceptFunction, SequenceEqualFunction, SortFunction, ReverseFunction, SubsequenceFunction,
+  AddDurationFunction, SubtractDurationFunction, DistinctValuesFunction, CountDuplicatesFunction, GetDuplicatesFunction,
+  ValueUnionFunction, ValueIntersectFunction, ValueExceptFunction, SequenceEqualFunction, SortFunction, ReverseFunction, SubsequenceFunction,
   IndexOfFunction, PreferredLanguageFunction, PreferredLanguageTextFunction, SplitFunction,
   Endpoint, Call, Api, On, Warn, Reject, Error, Warning, Info, Assert, Report, OtherwiseAssert, OtherwiseReport,
   As, FOR, IN, Any, Scope, IncludeDirective, AttributeSlash[@name=Slash],
@@ -458,6 +444,7 @@ FunctionDeclaration {
   comment { "//" ![\r\n\f]* }
 
   // DEFAULT mode.
+  StartContextBlock { "{" }
   IncludePath { '"' !["\r\n]+ '"' $[ \t]* comment? eol* }
   MixedIndent { ($[\t]+ $[ ]+ | $[ ]+ $[\t]+) $[ \t]* }
   Tabs { $[\t]+ }
@@ -465,7 +452,7 @@ FunctionDeclaration {
   OutlineNumber { @digit+ }
   SummarySectionHeader { "---" "-"* $[ \t]* "SUMMARY" $[ \t]* "---" "-"* eol* }
   NavigationSectionHeader { "---" "-"* $[ \t]* "NAVIGATION" $[ \t]* "---" "-"* eol* }
-  StageHeaderStart { "---" "-"* $[ \t]* ("STAGE" | "stage") $[ \t]+ }
+  StageHeaderStart { "---" "-"* $[ \t]* "STAGE" $[ \t]+ }
 
   // STAGE_HEADER mode.
   StageIdentifier { $[a-zA-Z0-9] ($[a-zA-Z0-9_\-]* $[a-zA-Z0-9_])? }
@@ -495,7 +482,7 @@ FunctionDeclaration {
   OpenBracket { "[" }
   CloseBracket { "]" }
   ColonColon { "::" }
-  StartExpressionBlock { "{" | "${" }
+  StartExpressionBlock { "${" }
   EndBlock { "}" }
   DayTimeDurationLiteral { "-"? "P" @digit+ $[WD] }
   YearMonthDurationLiteral { "-"? "P" @digit+ $[YM] }

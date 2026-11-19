@@ -13,8 +13,8 @@ import { TokenNames } from './conformance/TokenNames.js';
 // templates and the rules files. The test fails when they change, in either direction, until that
 // commit updates them here.
 const PINNED = {
-  validation: { files: 3, tokens: 116006 },
-  'view-templates': { files: 52, tokens: 348107 },
+  validation: { files: 5, tokens: 121215 },
+  'view-templates': { files: 51, tokens: 349125 },
 };
 
 const CORPUS = fileURLToPath(new URL('./corpus/', import.meta.url));

@@ -9,13 +9,13 @@ const SAME_NAMES = [
   'FieldId', 'NodeId', 'BtId', 'Identifier',
   // Punctuation and prefixes.
   'Colon', 'Pipe', 'Comma', 'Semicolon', 'Assignment', 'OpenParenthesis', 'CloseParenthesis', 'OpenBracket',
-  'CloseBracket', 'StartExpressionBlock', 'EndBlock', 'VariablePrefix', 'HashPrefix', 'AtPrefix', 'FunctionPrefix',
+  'CloseBracket', 'StartContextBlock', 'StartExpressionBlock', 'EndBlock', 'VariablePrefix', 'HashPrefix', 'AtPrefix', 'FunctionPrefix',
   // Template files: lines, sections and includes.
   'Tabs', 'OutlineNumber', 'CRLF', 'Let', 'With', 'When', 'Display', 'Otherwise', 'Invoke', 'Index', 'By',
   'Template', 'SummarySectionHeader', 'NavigationSectionHeader', 'IncludeDirective', 'IncludePath',
   // Rules files.
   'StageHeaderStart', 'StageIdentifier', 'StageHeaderEnd', 'RuleIdentifier', 'Assert', 'As', 'Error', 'Warning',
-  'FOR', 'IN', 'Scope', 'Post',
+  'FOR', 'IN', 'Scope', 'Post', 'EVERY', 'Endpoint', 'Dynamic', 'Call', 'Api', 'On', 'Warn',
   // Template text and labels.
   'FreeText', 'Whitespace', 'ShorthandFieldValueReferenceFromContextField',
   'ShorthandIndirectLabelReferenceFromContextField', 'StartLabelBlock', 'AssetType', 'LabelType', 'OtherAssetId',
@@ -29,8 +29,8 @@ const SAME_NAMES = [
   'Satisfies', 'If', 'Then', 'Else', 'For', 'Return', 'At', 'Text', 'Number', 'Indicator', 'Date', 'Time',
   'IsMasked', 'RawValue', 'PreferredLanguageText',
   // Functions.
-  'ConcatFunction', 'CountFunction', 'DistinctValuesFunction', 'FormatNumberFunction', 'IntersectFunction',
-  'StartsWithFunction', 'StringLengthFunction', 'SumFunction', 'UnionFunction',
+  'ConcatFunction', 'CountFunction', 'DistinctValuesFunction', 'FormatNumberFunction', 'StartsWithFunction',
+  'StringLengthFunction', 'SumFunction', 'ValueIntersectFunction', 'ValueUnionFunction',
 ];
 
 const TABLE = new Map(SAME_NAMES.map((name) => [name, name]));

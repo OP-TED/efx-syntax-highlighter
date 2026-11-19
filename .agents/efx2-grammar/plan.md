@@ -6,12 +6,12 @@ Design doc: https://claude.ai/artifact/CmT8jTYRWw5uRPBVfcAeud (the reasoning; th
 
 1. **Same language.** The Lezer grammar of `@op-ted/efx-syntax-highlighter` parses the language of `efx-grammar/Efx.g4` and `EfxLexer.g4` as they stand on the untyped-grammar branch: view templates, rules files and single expressions. Keyword and function lists are generated from the lexer, never typed in again.
 2. **Same completions.** The CodeMirror editor offers the toolkit's completion list (`EfxAutocomplete.getEfxCompletions`, 161 items: 140 functions, 9 keywords, 12 properties) with parameter placeholders, plus the field and node ids the host application loads.
-3. **Proof.** A conformance test tokenizes the SDK's 52 view templates and 4 rules files with the real ANTLR lexer (generated for JavaScript) and with the Lezer parser and compares the token streams. Alignment is measured on every commit.
+3. **Proof.** A conformance test tokenizes the SDK's view templates and rules files with the real ANTLR lexer (generated for JavaScript) and with the Lezer parser and compares the token streams. Alignment is measured on every commit.
 
 ## Sources, pinned
 
-- Grammar: rousso/eForms-SDK, branch `feature/efx2-untyped-grammar`, commit efc9a21 (`efx-grammar/Efx.g4`, `EfxLexer.g4`, `view-templates/*.efx`, `validation/*.efx`).
-- Completions: rousso/efx-toolkit-java, branch `feature/efx2-untyped-grammar`, commit 8675b8a (`src/test/resources/eu/europa/ted/efx/autocomplete/sdk2-completions.txt`; later the JSON resource the toolkit will ship, see decision 2 and Jira TEDEFO-5298).
+- Grammar: rousso/eForms-SDK, branch `feature/efx2-untyped-grammar`, commit d409925d (`efx-grammar/Efx.g4`, `EfxLexer.g4`, `view-templates/*.efx`, `validation/*.efx`); efc9a21 until the SDK sync of 2026-11-19.
+- Completions: rousso/efx-toolkit-java, branch `feature/efx2-untyped-grammar`, commit b861f16f; 8675b8a until the SDK sync of 2026-11-19 (`src/test/resources/eu/europa/ted/efx/autocomplete/sdk2-completions.txt`; later the JSON resource the toolkit will ship, see decision 2 and Jira TEDEFO-5298).
 - Pins are git commits of the forks until the SDK and toolkit pre-releases are on Maven Central (decision 5); then Maven versions.
 
 ## Rules of engagement
@@ -92,20 +92,22 @@ Until a decision is taken, the implementer proceeds on the recommendation where 
 | P3.3 | `demo/` (a page and its script) and `scripts/demo.js`, which serves the repository for it, with `npm run demo`; the package's contents do not change | P3.3 (01:18Z) |
 | P4.1 | `README.md` rewritten and `CHANGELOG.md` added (neither changes `dist/`); the version 0.3.0 in `package.json` and the lock file (decision 4); the package's description names the completions; `files` loses the exclusions of `dist/demo.js` and `dist/highlight.js`, which no build writes, so the package's files do not change | P4.1 (Yannis, 2026-11-03 03:34Z, "ok go") |
 | Phase 4 code-review pass | `package.json` and the lock file declare `@lezer/lr` ^1.4.12 and `@lezer/highlight` ^1.2.1, the versions the lock file already holds, so nothing new is installed | Yannis, 2026-11-03 03:47Z, "Declare them" on the card "Declare the two Lezer libraries the package uses as dependencies?" |
+| SDK sync to d409925d | The pins move to SDK d409925d and toolkit b861f16f, and the generated words, corpus and oracle with them: the statement words are read in upper case only and the expression words in lower case only, so a lower-case statement word is an error; `WITH EVERY` is read; `AT` (of `ENDPOINT ... AT`) and `EVERY` become tokens of their own; `no-unit` follows only a number of decimals (`|2 no-unit`), so `|medium no-unit` is an error, as in ANTLR; the `{` of a context block becomes `StartContextBlock`, and the label, link and format-option nodes follow the new rules (`LabelReference` with its label id, `LinkBlock`, `FormatStyle`); the five renamed function tokens and the renamed expression nodes (`PredicateOrLookupExpression`, `MembershipCondition`, `DuplicatesCondition`, `IterationExpression`, `ListExpression`, `BuiltInFunctionExpression`) take the colours of the old ones; a comparison now takes a condition as its operand (`1 == 2 in [1, 2]`); `test/sample.efx` writes its three lower-case statement words in upper case (style dump: those 3 runs, same colours); the conformance pins become 51 of 51 view templates (`summary.efx` left the SDK) and 349,125 tokens, and 5 of 7 rules files and 121,215 of 121,223 tokens (Parked: the includes of `rules.efx`, `dynamic-functions.efx`); the tree entries are re-pinned (the renamed nodes) and 10 are added; the completion test counts 833 words (the corpus's `1.efx` changed) and offers the statement words in upper case only | Yannis, 2026-11-19, relayed by the coordinator: "codex will not change the grammar now... dont waste time; tell thi highlighter already" |
 
 Anything else is a stop.
 
 ## Parked (no decision taken)
 
 - Lexer and grammar accidents, where the editor follows the grammar and both parsers reject the text, or (the open divergences above) the editor is the lenient one; each case listed here for the grammar, after the merge:
-  - `display whenever`: after a blank in template text a word starting with `when`, `otherwise` or `invoke` is read as that keyword (`when` + `ever`);
+  - `DISPLAY a WHENEVER`: after a blank in template text a word starting with `WHEN`, `OTHERWISE` or `INVOKE` is read as that keyword (`WHEN` + `EVER`); since the statement words are upper case only (SDK d409925d), only an upper-case word does this;
   - the word `value` alone in template text (`a value b`) is a token no rule takes;
   - the label type shorthand `#name`: the lexer reads it in template text, no rule takes it;
   - a template file whose last line has no line end fails (the EFX-1 line requires one);
   - a blank inside a label block (`#{ field|name|BT-1-Lot}`) fails: LABEL mode hides nothing;
-  - `let` inside a label block: the rules allow an expression block written with `let`, the lexer never reads it there;
+  - `LET` inside a label block: the rules allow an expression block written with `LET`, the lexer never reads it there;
   - the optional `DISPLAY` of `otherwiseDisplayTemplate` is never used: the lexer reads `OTHERWISE DISPLAY` as one token;
-  - an include after a rule set that does not end with `;` fails: the lexer is still in EXPRESSION mode, where `#` is a `HashPrefix` (`rules.efx` has two, at lines 15778 and 17176; the toolkit replaces includes before it parses). Being fixed (Yannis, 2026-11-03 00:40Z): the lexer reads `#include` at the start of a line in EXPRESSION mode as the include directive, one commit in the SDK fork made by the toolkit's thread; the editor states the same rule when its pin moves to that grammar, as an item of its own, and the conformance test then reads 4 of 4 rules files. Until then gate 2 stands at 55 of 56 files;
+  - an include after a rule set that does not end with `;` fails: the lexer is still in EXPRESSION mode, where `#` is a `HashPrefix` (`rules.efx` has three since SDK d409925d, at lines 15792, 17491 and 17493; the toolkit replaces includes before it parses). Being fixed (Yannis, 2026-11-03 00:40Z): the lexer reads `#include` at the start of a line in EXPRESSION mode as the include directive, one commit in the SDK fork made by the toolkit's thread; the editor states the same rule when its pin moves to that grammar, as an item of its own. Not in the SDK at d409925d;
+  - a rules file that holds only declarations fails: `rulesFile` requires at least one stage or include after them, and the SDK's `dynamic-functions.efx` (since d409925d, included first by `rules.efx`) has neither. With the include accident, the conformance test reads 5 of 7 rules files;
   - a rules-file line indented after a `;` fails: the lexer reads the indentation as `Tabs` or `Spaces`, which no rule of a rules file takes;
   - a comment between `OTHERWISE` and `ASSERT` or `REPORT` fails: the lexer reads the two words as one token only with whitespace between, and otherwise reads `OTHERWISE` as a template's and the rest as template text;
   - a rule id with more than three characters after its second hyphen (`R-AAA-0011`) fails: the lexer reads it as a name (`Identifier`), which `AS` does not take;

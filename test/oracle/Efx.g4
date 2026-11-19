@@ -42,14 +42,12 @@ options { tokenVocab=EfxLexer;}
  * If you do not need to process EFX templates, then you can create a full EFX parser that parses these expressions.
  * A single-expression contains two parts: a context-declaration and an expression-block.
  *
- * EFX-1 syntax: {context, params} ${expression}
- * EFX-2 syntax: WITH context, params COMPUTE expression
+ * EFX-1 syntax: {context, params} ${expression}, or {context, params} &{selection} for a selector
+ * EFX-2 syntax: WITH context, params COMPUTE expression, or WITH context, params SELECT selection for a selector
  */
 singleExpression
-    : StartExpressionBlock context=(FieldId | NodeId | Identifier) (Comma parameterList)? EndBlock expressionBlock EOF   // EFX-1
-    | With context=(FieldId | NodeId | Identifier) (Comma parameterList)? Compute expression EOF                         // EFX-2
-    | StartExpressionBlock context=(FieldId | NodeId | Identifier) (Comma parameterList)? EndBlock selectorBlock EOF    // EFX-1 style selector
-    | With context=(FieldId | NodeId | Identifier) (Comma parameterList)? Select selection EOF                          // EFX-2 selector
+    : StartContextBlock context=(FieldId | NodeId | Identifier) (Comma parameterList)? EndBlock (expressionBlock | selectorBlock) EOF   // EFX-1
+    | With context=(FieldId | NodeId | Identifier) (Comma parameterList)? (Compute expression | Select selection) EOF                // EFX-2
     ;
 
 /****************************************************************************** 
@@ -119,9 +117,9 @@ parameterDeclaration: typeDeclaration Colon VariablePrefix parameterName=Identif
 // Parameter values are not part of an EFX expression. 
 // However, an EFX Parser can and should be used to parse and validate them.
 // The parameterValue rule below defines the valid parameter values. 
-// A parameter value must be enclosed in an expression block so that the EFX lexer can switch 
-// from its DEFAULT mode to EXPRESSION mode in order to recognise the parameter value.
-parameterValue: StartExpressionBlock (scalarParameterValue | sequenceParameterValue) EndBlock;
+// A parameter value is a literal written on its own, so the EFX lexer must start in EXPRESSION mode
+// to recognise it.
+parameterValue: (scalarParameterValue | sequenceParameterValue) EOF;
 scalarParameterValue: stringLiteral | numericLiteral | dateLiteral | timeLiteral | durationLiteral | booleanLiteral;
 sequenceParameterValue: stringSequenceLiteral | numericSequenceLiteral | dateSequenceLiteral | timeSequenceLiteral | durationSequenceLiteral | booleanSequenceLiteral;
 
@@ -138,17 +136,17 @@ primitiveType: Text | Indicator | Number | Date | Time | Duration;
 /*
  * Types and cardinality are not part of the grammar: the translator infers them.
  * Earlier alternatives bind tighter: the predicate x[c], the index x[at n] and the path steps,
- * then * / %, then + -, then the comparisons and conditions, each binding tighter than the ones
- * listed after it, then and, then or. The prefix forms come last, so the expression after else,
- * satisfies or return extends as far to the right as it can: if c then 1 else 2 == 3 compares 2
- * with 3.
+ * then * / %, then + -, then the conditions, each binding tighter than the ones listed after it,
+ * then the comparisons, then and, then or. So a == b in c compares a with the result of b in c.
+ * The prefix forms come last, so the expression after else, satisfies or return extends as far
+ * to the right as it can: if c then 1 else 2 == 3 compares 2 with 3.
  * A predicate keeps the elements of a sequence for which its condition holds; an index selects
  * the nth element of the whole sequence. The keyword at tells the two apart, so the parser
  * decides on the token after the bracket.
  */
 expression
     : OpenParenthesis expression CloseParenthesis                       # parenthesizedExpression
-    | expression OpenBracket expression CloseBracket                    # filteredExpression
+    | expression OpenBracket expression CloseBracket                    # predicateOrLookupExpression
     | expression OpenBracket At expression CloseBracket                 # indexedExpression
     | expression Slash AtPrefix attributeName=Identifier                # attributeExpression
     | expression ColonColon linkedFieldReference                        # fieldFromContextExpression
@@ -158,24 +156,24 @@ expression
     | expression Colon PreferredLanguageText                            # preferredLanguageTextExpression
     | expression operator=(Star | Slash | Percent) expression           # multiplicativeExpression
     | expression operator=(Plus | Minus) expression                     # additiveExpression
-    | expression operator=Comparison expression                         # comparisonExpression
-    | expression modifier=Not? In expression                            # inListCondition
+    | expression modifier=Not? In expression                            # membershipCondition
     | expression Is modifier=Not? Unique In expression                  # uniqueValueCondition
     | expression Is modifier=Not? Empty                                 # emptinessCondition
-    | expression Has modifier=No? Duplicates                            # distinctCondition
+    | expression Has modifier=No? Duplicates                            # duplicatesCondition
     | expression modifier=Not? Like pattern=StringLiteral               # likePatternCondition
     | expression Is modifier=Not? Present                               # presenceCondition
+    | expression operator=Comparison expression                         # comparisonExpression
     | expression And expression                                         # logicalAndCondition
     | expression Or expression                                          # logicalOrCondition
     | If expression Then expression Else expression                     # conditionalExpression
     | (Every | Some) iteratorList Satisfies expression                  # quantifiedExpression
-    | For iteratorList Return Distinct? expression                      # sequenceFromIteration
-    | OpenBracket expression (Comma expression)* CloseBracket           # list
+    | For iteratorList Return Distinct? expression                      # iterationExpression
+    | OpenBracket expression (Comma expression)* CloseBracket           # listExpression
     | literal                                                           # literalExpression
     | reference                                                         # referenceExpression
     | fieldProperty                                                     # fieldPropertyExpression
     | codelistReference                                                 # codelistExpression
-    | builtInFunction                                                   # functionExpression
+    | builtInFunction                                                   # builtInFunctionExpression
     ;
 
 iteratorList: iteratorExpression (Comma iteratorExpression)*;
@@ -288,14 +286,14 @@ booleanFunction
     | StartsWithFunction    OpenParenthesis haystack=expression Comma needle=expression CloseParenthesis     # startsWithFunction
     | EndsWithFunction      OpenParenthesis haystack=expression Comma needle=expression CloseParenthesis     # endsWithFunction
     | SequenceEqualFunction OpenParenthesis expression Comma expression CloseParenthesis                     # sequenceEqualFunction
-    | Indicator             OpenParenthesis expression CloseParenthesis                                     # booleanFromNumberFunction
-    | Empty                 OpenParenthesis expression CloseParenthesis                                     # stringEmptyFunction
+    | Indicator             OpenParenthesis expression CloseParenthesis                                     # indicatorConversionFunction
+    | Empty                 OpenParenthesis expression CloseParenthesis                                     # emptyFunction
     ;
 
 numericFunction
     : CountFunction             OpenParenthesis expression CloseParenthesis                                 # countFunction
     | CountDuplicatesFunction   OpenParenthesis expression CloseParenthesis                                 # countDuplicatesFunction
-    | Number                    OpenParenthesis expression CloseParenthesis                                 # numberFunction
+    | Number                    OpenParenthesis expression CloseParenthesis                                 # numberConversionFunction
     | SumFunction               OpenParenthesis expression CloseParenthesis                                 # sumFunction
     | MinFunction               OpenParenthesis expression CloseParenthesis                                 # minFunction
     | MaxFunction               OpenParenthesis expression CloseParenthesis                                 # maxFunction
@@ -307,22 +305,22 @@ numericFunction
     | RoundFunction             OpenParenthesis expression CloseParenthesis                                 # roundFunction
     | RoundDownFunction         OpenParenthesis expression CloseParenthesis                                 # roundDownFunction
     | RoundUpFunction           OpenParenthesis expression CloseParenthesis                                 # roundUpFunction
-    | YearFunction              OpenParenthesis expression CloseParenthesis                                 # yearFromDateFunction
-    | MonthFunction             OpenParenthesis expression CloseParenthesis                                 # monthFromDateFunction
-    | DayFunction               OpenParenthesis expression CloseParenthesis                                 # dayFromDateFunction
-    | HoursFunction             OpenParenthesis expression CloseParenthesis                                 # hoursFromTimeFunction
-    | MinutesFunction           OpenParenthesis expression CloseParenthesis                                 # minutesFromTimeFunction
-    | SecondsFunction           OpenParenthesis expression CloseParenthesis                                 # secondsFromTimeFunction
-    | YearsFunction             OpenParenthesis expression CloseParenthesis                                 # yearsFromDurationFunction
-    | MonthsFunction            OpenParenthesis expression CloseParenthesis                                 # monthsFromDurationFunction
-    | DaysFunction              OpenParenthesis expression CloseParenthesis                                 # daysFromDurationFunction
+    | YearFunction              OpenParenthesis expression CloseParenthesis                                 # yearFunction
+    | MonthFunction             OpenParenthesis expression CloseParenthesis                                 # monthFunction
+    | DayFunction               OpenParenthesis expression CloseParenthesis                                 # dayFunction
+    | HoursFunction             OpenParenthesis expression CloseParenthesis                                 # hoursFunction
+    | MinutesFunction           OpenParenthesis expression CloseParenthesis                                 # minutesFunction
+    | SecondsFunction           OpenParenthesis expression CloseParenthesis                                 # secondsFunction
+    | YearsFunction             OpenParenthesis expression CloseParenthesis                                 # yearsFunction
+    | MonthsFunction            OpenParenthesis expression CloseParenthesis                                 # monthsFunction
+    | DaysFunction              OpenParenthesis expression CloseParenthesis                                 # daysFunction
     ;
 
 stringFunction
     : SubstringFunction             OpenParenthesis expression Comma start=expression (Comma length=expression)? CloseParenthesis           # substringFunction
     | SubstringBeforeFunction       OpenParenthesis expression Comma delimiter=expression CloseParenthesis                                   # substringBeforeFunction
     | SubstringAfterFunction        OpenParenthesis expression Comma delimiter=expression CloseParenthesis                                   # substringAfterFunction
-    | Text                          OpenParenthesis expression CloseParenthesis                                                              # textFunction
+    | Text                          OpenParenthesis expression CloseParenthesis                                                              # textConversionFunction
     | ConcatFunction                OpenParenthesis expression (Comma expression)* CloseParenthesis                                          # concatFunction
     | StringJoinFunction            OpenParenthesis expression Comma expression CloseParenthesis                                             # stringJoinFunction
     | FormatNumberFunction          OpenParenthesis expression Comma format=expression CloseParenthesis                                      # formatNumberFunction
@@ -347,28 +345,28 @@ stringFunction
     ;
 
 dateFunction
-    : Date                  OpenParenthesis expression CloseParenthesis                                     # dateFromStringFunction
-    | AddDuration           OpenParenthesis expression Comma expression CloseParenthesis                    # datePlusDurationFunction
-    | SubtractDuration      OpenParenthesis expression Comma expression CloseParenthesis                    # dateMinusDurationFunction
-    | CurrentDateFunction   OpenParenthesis CloseParenthesis                                                # currentDateFunction
+    : Date                     OpenParenthesis expression CloseParenthesis                                  # dateConversionFunction
+    | AddDurationFunction      OpenParenthesis expression Comma expression CloseParenthesis                 # addDurationFunction
+    | SubtractDurationFunction OpenParenthesis expression Comma expression CloseParenthesis                 # subtractDurationFunction
+    | CurrentDateFunction      OpenParenthesis CloseParenthesis                                             # currentDateFunction
     ;
 
 timeFunction
-    : Time                  OpenParenthesis expression CloseParenthesis                                     # timeFromStringFunction
+    : Time                  OpenParenthesis expression CloseParenthesis                                     # timeConversionFunction
     | CurrentTimeFunction   OpenParenthesis CloseParenthesis                                                # currentTimeFunction
     ;
 
 durationFunction
-    : DayTimeDurationFunction   OpenParenthesis expression CloseParenthesis                                 # dayTimeDurationFromStringFunction
-    | YearMonthDurationFunction OpenParenthesis expression CloseParenthesis                                 # yearMonthDurationFromStringFunction
+    : DayTimeDurationFunction   OpenParenthesis expression CloseParenthesis                                 # dayTimeDurationConversionFunction
+    | YearMonthDurationFunction OpenParenthesis expression CloseParenthesis                                 # yearMonthDurationConversionFunction
     ;
 
 sequenceFunction
     : DistinctValuesFunction    OpenParenthesis expression CloseParenthesis                                 # distinctValuesFunction
     | GetDuplicatesFunction     OpenParenthesis expression CloseParenthesis                                 # getDuplicatesFunction
-    | UnionFunction             OpenParenthesis expression Comma expression CloseParenthesis                # unionFunction
-    | IntersectFunction         OpenParenthesis expression Comma expression CloseParenthesis                # intersectFunction
-    | ExceptFunction            OpenParenthesis expression Comma expression CloseParenthesis                # exceptFunction
+    | ValueUnionFunction        OpenParenthesis expression Comma expression CloseParenthesis                # valueUnionFunction
+    | ValueIntersectFunction    OpenParenthesis expression Comma expression CloseParenthesis                # valueIntersectFunction
+    | ValueExceptFunction       OpenParenthesis expression Comma expression CloseParenthesis                # valueExceptFunction
     | SortFunction              OpenParenthesis expression CloseParenthesis                                 # sortFunction
     | ReverseFunction           OpenParenthesis expression CloseParenthesis                                 # reverseFunction
     | SubsequenceFunction       OpenParenthesis expression Comma start=expression (Comma length=expression)? CloseParenthesis  # subsequenceFunction
@@ -445,7 +443,7 @@ includeDirective: IncludeDirective IncludePath;
  * Named API endpoint declaration with optional compile-time default URL.
  * Generated as Schematron <param> elements, overridable at runtime.
  */
-apiEndpointDeclaration: Endpoint endpointName=StringLiteral (At endpointUrl=StringLiteral)? Semicolon;
+apiEndpointDeclaration: Endpoint endpointName=StringLiteral (AT endpointUrl=StringLiteral)? Semicolon;
 
 /*
  * API function declaration. Declares an external API-backed boolean function
@@ -499,9 +497,11 @@ ruleSet
 /*
  * WITH clause uses the same contextDeclarationBlock as templates.
  * It allows variable declarations before and/or after the context declaration.
+ * WITH EVERY makes the rule apply to every element of the context's kind: the predicates on
+ * the last step of the declared node or field are left out of the rule context.
  */
 withClause
-    : With contextDeclarationBlock
+    : With EVERY? contextDeclarationBlock
     ;
 
 rules: (simpleRule | conditionalRule)+;
@@ -694,7 +694,7 @@ dictionaryKeyClause: By expression;
  */
 templateLine
     : indentation? OutlineNumber? (With contextDeclarationBlock)? (chooseTemplate | displayTemplate | invokeTemplate) Semicolon
-    | indentation? OutlineNumber? StartExpressionBlock contextDeclarationBlock EndBlock template CRLF
+    | indentation? OutlineNumber? StartContextBlock contextDeclarationBlock EndBlock template CRLF
     ;
 
 /***
@@ -713,21 +713,20 @@ indentation: Tabs | Spaces | MixedIndent;
 template: templateFragment;
 
 
+/*
+ * A label, an expression block or a text block followed by a link block is displayed as a hyperlink.
+ * A text is read one text block at a time, so a link block after a text makes a hyperlink of its
+ * last text block only: in `see the notice@{...}`, only `notice` is a hyperlink. The template
+ * translator joins the text blocks that follow each other back into one text.
+ */
 templateFragment
-    : lineBreak templateFragment?                   # secondaryTemplate
-    | textBlock templateFragment?                   # textTemplate
-    | labelBlock templateFragment?                  # labelTemplate
-    | formattedExpressionBlock templateFragment?    # expressionTemplate
-    | linkedTextBlock templateFragment?             # linkedTextTemplate
-    | linkedLabelBlock templateFragment?            # linkedLabelTemplate
-    | linkedExpressionBlock templateFragment?       # linkedExpressionTemplate
+    : lineBreak templateFragment?                               # secondaryTemplate
+    | textBlock linkBlock? templateFragment?                    # textTemplate
+    | labelBlock linkBlock? templateFragment?                   # labelTemplate
+    | formattedExpressionBlock linkBlock? templateFragment?     # expressionTemplate
     ;
 
 linkBlock: StartHyperlinkBlock expression EndBlock;
-
-linkedTextBlock: textBlock linkBlock;
-linkedLabelBlock: labelBlock linkBlock;
-linkedExpressionBlock: formattedExpressionBlock linkBlock;
 
 /**
  * A formatted expression block displays a value formatted according to its type: a number with up to
@@ -739,10 +738,11 @@ linkedExpressionBlock: formattedExpressionBlock linkBlock;
  * expression, ${BT-00-Number * 2}, according to the type of its result. The field identifier is
  * listed first, so that it takes precedence over the general expression.
  *
- * Format options can follow a pipe: a number of decimals, from 0 to 9, or one of the keywords short,
- * medium or long, optionally followed by the keyword no-unit; or the keyword no-formatting, which
- * displays the value of a field as entered, and the value of any other expression as it is, without
- * a unit. Which options apply to which types is decided by the template translator.
+ * Format options can follow a pipe: a number of decimals, from 0 to 9, optionally followed by the
+ * keyword no-unit; one of the keywords short, medium or long; the keyword no-unit alone; or the
+ * keyword no-formatting, which displays the value of a field as entered, and the value of any other
+ * expression as it is, without a unit. Which options apply to which types is decided by the template
+ * translator.
  */
 formattedExpressionBlock
     : StartExpressionBlock FieldId formatOptions? EndBlock      # fieldExpressionBlock          // ${BT-00-Number|2}
@@ -750,11 +750,12 @@ formattedExpressionBlock
     | ShorthandFieldValueReferenceFromContextField              # contextFieldExpressionBlock   // $value
     ;
 formatOptions
-    : Pipe formatSpecifier FormatNoUnit?
+    : Pipe FormatDecimals FormatNoUnit?
+    | Pipe formatStyle
     | Pipe FormatNoUnit
     | Pipe FormatNoFormatting
     ;
-formatSpecifier: FormatDecimals | FormatShort | FormatMedium | FormatLong;
+formatStyle: FormatShort | FormatMedium | FormatLong;
 
 /**
  * A line-break is a newline character (\n).
@@ -764,34 +765,42 @@ formatSpecifier: FormatDecimals | FormatShort | FormatMedium | FormatLong;
 lineBreak: NewLine;
 
 /**
- * A text-block consists of whitespace and free-text.
- * Escape sequences and character references are handled within the free-text token.
- * It is used to add static content to the template.
+ * A text block is a single token of text: free text without whitespace, whitespace, an escape
+ * sequence or a character reference. It is used to add static content to the template.
  */
-textBlock: (Whitespace | FreeText | OtherEscapeSequence | CharacterReference)+;
+textBlock: Whitespace | FreeText | OtherEscapeSequence | CharacterReference;
 
 /******************************************************************************
   Labels are matched when the lexical analyser is in LABEL mode
  ******************************************************************************/
 
 
- /**
- * A label-block starts with a # and curly braces (or just # for shorthand value references), and can contain a standard label reference, computed label, shorthand, or indirect label reference.
+/**
+ * A label block shows a label: #{labelId} or, with a pluraliser, #{labelId;${quantity}}.
+ * #value is a shortcut for the label of the value of the context field.
  */
 labelBlock
-    : StartLabelBlock assetType Pipe labelType Pipe assetId (Semicolon pluraliser)? EndBlock    # standardLabelReference
-    | StartLabelBlock expressionBlock (Semicolon pluraliser)? EndBlock                          # computedLabelReference
-    | StartLabelBlock labelType Pipe BtId (Semicolon pluraliser)? EndBlock                      # shorthandBtLabelReference
-    | StartLabelBlock labelType Pipe FieldId (Semicolon pluraliser)? EndBlock                   # shorthandFieldLabelReference
-    | StartLabelBlock LabelType (Semicolon pluraliser)? EndBlock                                # shorthandLabelReferenceFromContext
-    // Indirect Label References ----------------------------------------------------------------------------------------------
-    // If an assetType and labelType are not specified, then the label reference is an indirect label reference.
-    // Indirect label references derive the label text from the type and value of field.
-    | StartLabelBlock FieldId (Semicolon pluraliser)? EndBlock                                  # shorthandIndirectLabelReference
-    | ShorthandIndirectLabelReferenceFromContextField                                           # shorthandIndirectLabelReferenceFromContextField
+    : StartLabelBlock labelId (Semicolon pluraliser)? EndBlock    # labelReference
+    | ShorthandIndirectLabelReferenceFromContextField              # shorthandIndirectLabelReferenceFromContextField
     ;
 
-assetType: AssetType | expressionBlock;
+/*
+ * A label id has three parts: an asset type, a label type and an asset id. The asset type can be
+ * left out when it can be inferred from the asset id, and then the label type can be left out too.
+ * Any part can be computed by an expression block, and so can the whole label id.
+ * A label type alone, as in #{name}, is a shortcut for a label of the context field or node.
+ *
+ * A first part computed by an expression block is the asset type, the label type or the whole
+ * label id, depending on what follows it.
+ */
+labelId
+    : AssetType Pipe labelType Pipe assetId                                   # standardLabelId                     // #{field|name|BT-00-Text}
+    | LabelType Pipe (BtId | FieldId)                                         # shorthandLabelId                    // #{name|BT-00}, #{name|BT-00-Text}
+    | LabelType                                                               # shorthandLabelIdFromContext         // #{name}
+    | FieldId                                                                 # shorthandIndirectLabelId            // #{BT-00-Text}
+    | expressionBlock (Pipe (labelType Pipe assetId | BtId | FieldId))?       # labelIdStartingWithExpressionBlock  // #{${...}}, #{${...}|name|BT-00-Text}, #{${...}|BT-00}, #{${...}|BT-00-Text}
+    ;
+
 labelType: LabelType | expressionBlock;
 assetId
     : BtId                  // The assetId can be a business term identifier  
