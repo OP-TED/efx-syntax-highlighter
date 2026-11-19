@@ -5,7 +5,8 @@
 // - `template` is a whole template file; the tree is the whole tree;
 // - `rules` is a whole rules file; the tree is the whole tree;
 // - `mistake` names what is wrong in wrong EFX: the tree is the editor's, and both parsers report an error;
-// - `divergence` names a divergence the plan lists: the tree is the editor's, and ANTLR's differs.
+// - `divergence` names a known place where the editor accepts text that ANTLR rejects: the tree is the
+//   editor's, and ANTLR's differs.
 //
 // Every other tree is also ANTLR's, named as OracleTree names it.
 
@@ -641,7 +642,8 @@ export const ENTRIES = [
     tree: 'RulesFile(ValidationStage(StageHeaderStart StageIdentifier StageHeaderEnd RuleSet(WithClause(With ContextDeclarationBlock(ContextDeclaration(NodeContext(SimpleNodeReference(NodeId))))) Rules(SimpleRule(AssertClause(Assert ComparisonExpression(LiteralExpression(Literal(NumericLiteral(IntegerLiteral))) Comparison LiteralExpression(Literal(NumericLiteral(IntegerLiteral))))) AsClause(As Severity(Error) RuleId(RuleIdentifier)) ForClause(FOR SimpleFieldReference(FieldId)) InClause(IN ExplicitNoticeTypes(NoticeTypeRange(NoticeType(IntegerLiteral)))) ScopeClause(Scope ScopeAnnotation(Post) ⚠ ⚠))))))' },
   { rules: "--- STAGE 1 ---\nWITH ND-Root\n  WHEN 1 == 1 ASSERT 1 == 1 AS ERROR R-AAA-001 FOR BT-1-Lot IN 1\n  OTHERWISE // a comment\n  ASSERT 2 == 2 AS ERROR R-AAA-001 FOR BT-1-Lot IN 1\n", mistake: "a comment inside OTHERWISE ASSERT",
     tree: 'RulesFile(ValidationStage(StageHeaderStart StageIdentifier StageHeaderEnd RuleSet(WithClause(With ContextDeclarationBlock(ContextDeclaration(NodeContext(SimpleNodeReference(NodeId))))) Rules(ConditionalRule(WhenClause(When ComparisonExpression(LiteralExpression(Literal(NumericLiteral(IntegerLiteral))) Comparison LiteralExpression(Literal(NumericLiteral(IntegerLiteral))))) AssertClause(Assert ComparisonExpression(LiteralExpression(Literal(NumericLiteral(IntegerLiteral))) Comparison LiteralExpression(Literal(NumericLiteral(IntegerLiteral))))) AsClause(As Severity(Error) RuleId(RuleIdentifier)) ForClause(FOR SimpleFieldReference(FieldId)) InClause(IN ExplicitNoticeTypes(NoticeTypeRange(NoticeType(IntegerLiteral) ⚠)))) SimpleRule(AssertClause(Assert ComparisonExpression(LiteralExpression(Literal(NumericLiteral(IntegerLiteral))) Comparison LiteralExpression(Literal(NumericLiteral(IntegerLiteral))))) AsClause(As Severity(Error) RuleId(RuleIdentifier)) ForClause(FOR SimpleFieldReference(FieldId)) InClause(IN ExplicitNoticeTypes(NoticeTypeRange(NoticeType(IntegerLiteral)))))))))' },
-  // The divergences the plan lists: the editor's tree is pinned, and ANTLR's must still differ.
+  // The divergences: text the editor accepts and ANTLR rejects, each named by its cause; the editor's
+  // tree is pinned, and ANTLR's must still differ.
   { rules: "--- STAGE 1 ---\nWITH ND-Root\n  ASSERT R-AAA-001 == 1 AS ERROR R-AAA-001 FOR BT-1-Lot IN 1\n", divergence: "rule ids and scope annotations in expressions",
     tree: 'RulesFile(ValidationStage(StageHeaderStart StageIdentifier StageHeaderEnd RuleSet(WithClause(With ContextDeclarationBlock(ContextDeclaration(NodeContext(SimpleNodeReference(NodeId))))) Rules(SimpleRule(AssertClause(Assert ComparisonExpression(ReferenceExpression(Reference(FieldReference(LinkedFieldReference(SimpleFieldReference(Identifier))))) Comparison LiteralExpression(Literal(NumericLiteral(IntegerLiteral))))) AsClause(As Severity(Error) RuleId(RuleIdentifier)) ForClause(FOR SimpleFieldReference(FieldId)) InClause(IN ExplicitNoticeTypes(NoticeTypeRange(NoticeType(IntegerLiteral)))))))))' },
   { rules: "--- STAGE 1 ---\nWITH ND-Root\n  ASSERT BT-1-Lot/@PRE == 1 AS ERROR R-AAA-001 FOR BT-1-Lot IN 1\n", divergence: "rule ids and scope annotations in expressions",
