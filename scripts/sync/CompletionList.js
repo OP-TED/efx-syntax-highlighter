@@ -1,6 +1,7 @@
 // The toolkit's completion items for SDK 2, read from the JSON file its jar holds
 // (sdk2-completions.json): an array of items, each with its label, kind and data type, and for a
 // function its parameters, each with its name and data type and whether it is optional or variadic.
+// The file is checked to have that shape, so that a change in it fails the sync instead of the editor.
 
 const KINDS = new Set(['FUNCTION', 'KEYWORD', 'PROPERTY']);
 
@@ -11,11 +12,14 @@ export class CompletionList {
     this.#items = items;
   }
 
-  /** Reads the JSON file; an item of another kind, a function with no parameter list or a word with one, fails it. */
+  /** Reads the JSON file; anything not of the shape above fails it. */
   static parse(text) {
     const items = JSON.parse(text);
+    if (!Array.isArray(items)) {
+      throw new Error('The completion list is not an array');
+    }
     for (const item of items) {
-      if (!KINDS.has(item.kind) || (item.kind === 'FUNCTION') !== Array.isArray(item.parameters)) {
+      if (!CompletionList.#isItem(item)) {
         throw new Error(`Not a completion item: ${JSON.stringify(item)}`);
       }
     }
@@ -33,5 +37,32 @@ export class CompletionList {
 // The toolkit's completion items: the built-in functions with their parameters, the keywords and the properties.
 export const completionItems = ${JSON.stringify(this.#items, null, 2)};
 `;
+  }
+
+  /** Whether an item has a label, a kind and a data type, and a list of parameters exactly when it is a function. */
+  static #isItem(item) {
+    if (!CompletionList.#isObject(item) || !CompletionList.#isText(item.label) || !KINDS.has(item.kind)
+      || !CompletionList.#isText(item.dataType)) {
+      return false;
+    }
+    if (item.kind !== 'FUNCTION') {
+      return item.parameters === undefined;
+    }
+    return Array.isArray(item.parameters) && item.parameters.every((parameter) => CompletionList.#isParameter(parameter));
+  }
+
+  /** Whether a parameter has a name and a data type, and says whether it is optional and whether it is variadic. */
+  static #isParameter(parameter) {
+    return CompletionList.#isObject(parameter) && CompletionList.#isText(parameter.name)
+      && CompletionList.#isText(parameter.dataType) && typeof parameter.optional === 'boolean'
+      && typeof parameter.variadic === 'boolean';
+  }
+
+  static #isObject(value) {
+    return typeof value === 'object' && value !== null && !Array.isArray(value);
+  }
+
+  static #isText(value) {
+    return typeof value === 'string' && value !== '';
   }
 }
