@@ -1,9 +1,8 @@
-// The toolkit's completion items for SDK 2, read from the text form it pins in its tests
-// (sdk2-completions.txt): one item per line, `KIND label(name TYPE, ...) -> TYPE`, where a
-// parameter is marked ? when it is optional and ... when it repeats.
+// The toolkit's completion items for SDK 2, read from the JSON file its jar holds
+// (sdk2-completions.json): an array of items, each with its label, kind and data type, and for a
+// function its parameters, each with its name and data type and whether it is optional or variadic.
 
-const ITEM = /^(?<kind>FUNCTION|KEYWORD|PROPERTY) (?<label>[^\s(]+)(?:\((?<parameters>.*)\))? -> (?<dataType>\w+)$/;
-const PARAMETER = /^(?<name>\w+) (?<dataType>\w+)(?<mark>\?|\.\.\.)?$/;
+const KINDS = new Set(['FUNCTION', 'KEYWORD', 'PROPERTY']);
 
 export class CompletionList {
   #items;
@@ -12,10 +11,15 @@ export class CompletionList {
     this.#items = items;
   }
 
-  /** Reads the text form; comment lines start with #. */
+  /** Reads the JSON file; an item of another kind, a function with no parameter list or a word with one, fails it. */
   static parse(text) {
-    const lines = text.split(/\r?\n/).filter((line) => line !== '' && !line.startsWith('#'));
-    return new CompletionList(lines.map((line) => CompletionList.#itemOf(line)));
+    const items = JSON.parse(text);
+    for (const item of items) {
+      if (!KINDS.has(item.kind) || (item.kind === 'FUNCTION') !== Array.isArray(item.parameters)) {
+        throw new Error(`Not a completion item: ${JSON.stringify(item)}`);
+      }
+    }
+    return new CompletionList(items);
   }
 
   get size() {
@@ -29,28 +33,5 @@ export class CompletionList {
 // The toolkit's completion items: the built-in functions with their parameters, the keywords and the properties.
 export const completionItems = ${JSON.stringify(this.#items, null, 2)};
 `;
-  }
-
-  static #itemOf(line) {
-    const match = ITEM.exec(line);
-    if (!match || (match.groups.kind === 'FUNCTION') !== (match.groups.parameters !== undefined)) {
-      throw new Error(`Not a completion item: ${line}`);
-    }
-    const { kind, label, dataType, parameters } = match.groups;
-    const item = { label, kind, dataType };
-    return parameters === undefined ? item : { ...item, parameters: CompletionList.#parametersOf(parameters, line) };
-  }
-
-  static #parametersOf(text, line) {
-    return text === '' ? [] : text.split(', ').map((parameter) => CompletionList.#parameterOf(parameter, line));
-  }
-
-  static #parameterOf(text, line) {
-    const match = PARAMETER.exec(text);
-    if (!match) {
-      throw new Error(`Not a parameter: ${text} in ${line}`);
-    }
-    const { name, dataType, mark } = match.groups;
-    return { name, dataType, optional: mark === '?', variadic: mark === '...' };
   }
 }

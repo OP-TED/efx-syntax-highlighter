@@ -16,7 +16,7 @@ import { Pins } from './sync/Pins.js';
 
 const LEXER_GRAMMAR = 'efx-grammar/EfxLexer.g4';
 const PARSER_GRAMMAR = 'efx-grammar/Efx.g4';
-const COMPLETIONS = 'src/test/resources/eu/europa/ted/efx/autocomplete/sdk2-completions.txt';
+const COMPLETIONS = 'src/main/resources/eu/europa/ted/efx/autocomplete/sdk2-completions.json';
 
 const commandLine = process.argv.slice(2);
 const pins = await (commandLine.length > 0 ? Pins.of(commandLine) : Pins.recorded()).resolved();

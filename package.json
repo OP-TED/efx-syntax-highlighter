@@ -58,6 +58,6 @@
   },
   "config": {
     "sdk": "OP-TED/eForms-SDK@b43466c004b0865a979c9ffd2cc84781bf081fe0",
-    "toolkit": "OP-TED/efx-toolkit-java@879c9afd7eacc7e254bbee0058012cd9c3fec240"
+    "toolkit": "OP-TED/efx-toolkit-java@1fa3745e5fe2d04acd7fcb337702f328f432a6fb"
   }
 }
