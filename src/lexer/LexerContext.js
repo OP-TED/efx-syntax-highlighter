@@ -8,7 +8,14 @@
 // - TEMPLATE_SEMICOLON: after the `;` that ends a template, the lexer is at the start of a line, as
 //   at LINE_START, but the `;` takes the blanks and the comment after it on its line (EndTemplate),
 //   so that comment needs no line end (LineMode.js).
-// The skip tokens leave it as it is; any other token sets none of them.
+// - BEFORE_FIRST_WORD: after the indentation or the outline number of a line, before its first word.
+// - INVOKE_LINE: in a line that starts with INVOKE. At the start of a line the lexer reads INVOKE in
+//   DEFAULT mode, which pushes EXPRESSION mode only (Invoke), so the line's `;` takes the lexer back
+//   to DEFAULT mode, where any other `;` takes it to SKIP_WHITESPACE.
+// - INVOKE_SEMICOLON: after that `;`, the lexer is at the start of a line in DEFAULT mode
+//   (LineMode.js).
+// The skip tokens leave it as it is, and the tokens of a line that starts with INVOKE keep
+// INVOKE_LINE until its `;` or line end; any other token sets none of these values.
 
 import { ContextTracker } from '@lezer/lr';
 import * as terms from '../efx-parser.terms.js';
@@ -16,6 +23,9 @@ import * as terms from '../efx-parser.terms.js';
 export const LINE_START = 1;
 export const TEMPLATE_END = 2;
 export const TEMPLATE_SEMICOLON = 3;
+export const BEFORE_FIRST_WORD = 4;
+export const INVOKE_LINE = 5;
+export const INVOKE_SEMICOLON = 6;
 
 // The tokens after which the lexer is at the start of a line.
 const LINE_ENDS = new Set([terms.Semicolon, terms.CRLF, terms.IncludePath, terms.StageHeaderEnd,
@@ -25,16 +35,37 @@ const LINE_ENDS = new Set([terms.Semicolon, terms.CRLF, terms.IncludePath, terms
 // grammar defines inside templateFragment, so they have no term of their own to look for.
 const ENDS_WITH_TEMPLATE = new Set([terms.DisplayTemplate, terms.OtherwiseDisplayTemplate]);
 
+// The tokens that can come before the first word of a line: its indentation and outline number.
+const LINE_PREFIXES = new Set([terms.Tabs, terms.Spaces, terms.MixedIndent, terms.OutlineNumber]);
+
 const SKIPPED = new Set([terms.space, terms.Comment]);
+
+/** Whether the lexer is at the start of a line. */
+export function isLineStart(context) {
+  return context === LINE_START || context === TEMPLATE_SEMICOLON || context === INVOKE_SEMICOLON;
+}
 
 function shift(context, term) {
   if (SKIPPED.has(term)) {
     return context;
   }
+  const lineStart = isLineStart(context) || context === BEFORE_FIRST_WORD;
+  if (lineStart && LINE_PREFIXES.has(term)) {
+    return BEFORE_FIRST_WORD;
+  }
+  if (lineStart && term === terms.Invoke) {
+    return INVOKE_LINE;
+  }
   if (term === terms.Semicolon && context === TEMPLATE_END) {
     return TEMPLATE_SEMICOLON;
   }
-  return LINE_ENDS.has(term) ? LINE_START : 0;
+  if (term === terms.Semicolon && context === INVOKE_LINE) {
+    return INVOKE_SEMICOLON;
+  }
+  if (LINE_ENDS.has(term)) {
+    return LINE_START;
+  }
+  return context === INVOKE_LINE ? INVOKE_LINE : 0;
 }
 
 export const lexerContext = new ContextTracker({

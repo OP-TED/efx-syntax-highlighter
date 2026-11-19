@@ -1,16 +1,18 @@
 // DEFAULT mode, between lines and at their start. Blanks indent a line (the grammar's own Tabs,
-// Spaces and MixedIndent) unless a comment or a line end follows them (EmptyOrCommentLine), or they
-// follow a `;`, after which the lexer skips one run of whitespace (SKIP_WHITESPACE): those blanks
-// are hidden, and so are line ends. A comment is hidden only before a line end (EmptyOrCommentLine,
-// SkippedComment), except on the line of a template's `;`, which takes it (EndTemplate). A word is
-// one of the line words; DISPLAY takes the whitespace after it, which must be there. `#include` and
-// the blanks after it are an IncludeDirective, which only this mode reads. Directly after a `;`, the
-// lexer is still skipping whitespace and has found none (SKIP_WHITESPACE): it reads only the words of
-// that mode there, and no IncludeDirective.
+// Spaces and MixedIndent) unless a comment or a line end follows them (EmptyOrCommentLine). A `;`
+// takes the lexer to SKIP_WHITESPACE, where it skips one run of whitespace: the blanks after the `;`
+// are hidden, and so are line ends. The `;` of a line that starts with INVOKE takes it back to
+// DEFAULT mode instead (LexerContext.js), so the blanks after it indent the next line. A comment is
+// hidden only before a line end (EmptyOrCommentLine, SkippedComment), except on the line of a
+// template's `;`, which takes it (EndTemplate). A word is one of the line words; DISPLAY takes the
+// whitespace after it, which must be there. `#include` and the blanks after it are an
+// IncludeDirective, which only this mode reads. Where the lexer is still in SKIP_WHITESPACE, directly
+// after a `;` or after a template's `;` and the blanks it takes, it reads only the words of that
+// mode, and no IncludeDirective.
 
 import * as terms from '../efx-parser.terms.js';
 import { lineTokens, skipWhitespaceTokens } from '../generated/words.js';
-import { LINE_START, TEMPLATE_SEMICOLON } from './LexerContext.js';
+import { INVOKE_SEMICOLON, isLineStart, TEMPLATE_SEMICOLON } from './LexerContext.js';
 import { LexerMode } from './LexerMode.js';
 import { ReservedWords } from './ReservedWords.js';
 
@@ -20,7 +22,7 @@ export class LineMode extends LexerMode {
 
   /** At the start of a line (LexerContext.js), or where the parser can take a line's indentation. */
   isActive(stack) {
-    return stack.context === LINE_START || stack.context === TEMPLATE_SEMICOLON || stack.canShift(terms.Tabs);
+    return isLineStart(stack.context) || stack.canShift(terms.Tabs);
   }
 
   hide(input, stack) {
@@ -30,14 +32,14 @@ export class LineMode extends LexerMode {
       return (input.isLineEnd(length) || afterTemplate) && input.take(terms.Comment, length);
     }
     const blanks = input.blanks(0);
-    if (blanks > 0 && (input.isSemicolon(-1) || input.isComment(blanks) || input.isLineEnd(blanks))) {
+    if (blanks > 0 && (LineMode.#skipsWhitespace(input, stack) || input.isComment(blanks) || input.isLineEnd(blanks))) {
       return input.take(terms.space, blanks);
     }
     return input.take(terms.space, input.lineEnds(0));
   }
 
-  read(input) {
-    if (input.isSemicolon(-1)) {
+  read(input, stack) {
+    if (LineMode.#skipsWhitespace(input, stack)) {
       const word = LineMode.#skipWhitespaceWords.wordAt(input, 0);
       if (word !== undefined) {
         input.accept(word.token, word.length);
@@ -63,5 +65,17 @@ export class LineMode extends LexerMode {
 
   words() {
     return LineMode.#words.entries();
+  }
+
+  /**
+   * Whether the lexer is still in SKIP_WHITESPACE at the position: directly after a `;`, or after a
+   * template's `;` and the blanks it takes (EndTemplate), but not after the `;` of a line that starts
+   * with INVOKE.
+   */
+  static #skipsWhitespace(input, stack) {
+    if (stack.context === TEMPLATE_SEMICOLON) {
+      return input.followsSemicolon(0);
+    }
+    return stack.context !== INVOKE_SEMICOLON && input.isSemicolon(-1);
   }
 }
