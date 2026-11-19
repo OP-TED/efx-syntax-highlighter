@@ -51,6 +51,11 @@ export class LexerInput {
     return c === TAB || c === SPACE;
   }
 
+  /** Whether the text ends at an offset (EOF). */
+  isEnd(offset) {
+    return this.#input.peek(offset) < 0;
+  }
+
   /** EOL: '\r'? '\n' | '\r' | '\f' */
   isLineEnd(offset) {
     const c = this.#input.peek(offset);
