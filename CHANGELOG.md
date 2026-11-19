@@ -12,7 +12,7 @@ This release brings the highlighter to EFX-2, the language of the eForms SDK 2, 
 
 - The grammar is rewritten as a translation of the SDK's ANTLR grammar (`efx-grammar/Efx.g4` and `EfxLexer.g4`), rule for rule, at the SDK commit pinned in `package.json`.
 - It reads the three kinds of EFX text, each from a top of its own: template files, rules files and single expressions.
-- As the SDK's grammar requires, statement words (`LET`, `WITH`, `DISPLAY`, `ASSERT`, `STAGE` and the others) are upper case only, as are `TRUE`, `FALSE`, `ALWAYS` and `NEVER`. The other words of expressions (`is`, `in`, `every`, `at` and the others) are lower case only. A statement word in lower case shows as an error.
+- As the SDK's grammar requires, statement words (`LET`, `WITH`, `DISPLAY`, `ASSERT`, `STAGE` and the others) are written in upper case, as are `TRUE`, `FALSE`, `ALWAYS` and `NEVER`. The other words of expressions (`is`, `in`, `every`, `at` and the others) are written in lower case, and the field properties as they are listed (`rawValue`, `publicationDate`). A statement word in lower case is read as a name (`LET template:call()`), so `with` at the start of a template line shows as an error.
 - The words the lexer reserves are generated from the SDK's lexer by `npm run sync`, no longer typed into the grammar.
 - A conformance test compares the editor's tokens with those of the ANTLR lexer, generated for JavaScript, over the SDK's view templates and rules files. They are equal in 51 of 51 view templates and 5 of 7 rules files. The ANTLR grammar rejects the other two as well: three `#include` lines of `rules.efx`, and `dynamic-functions.efx`, which holds only declarations.
 
