@@ -62,10 +62,11 @@ Known limits: after the label shorthand `#{name|` no field ids are offered; afte
 npm run build   # generates the parser from grammar/efx.grammar and writes the package to dist/
 npm test        # the package, tree, conformance, style and completion tests, on the build
 npm run demo    # serves a demo page at http://localhost:8080/demo/ (after npm run build)
+npm run site    # gathers the demo page and what it loads into site/ (after npm run build)
 npm run sync    # copies the words, the corpus, the ANTLR oracle and the completion list again
 ```
 
-`npm run sync` reads the SDK and the toolkit from GitHub at the commits pinned in `package.json`, or pins new ones first: `npm run sync -- <owner>/<repository>@<commit> <owner>/<repository>@<commit>` (the SDK, then the toolkit). It needs Node 22.13 or later and network access; behind a proxy, set `NODE_USE_ENV_PROXY=1`. A `GITHUB_TOKEN`, when set, is sent to the GitHub API only. Build and test need neither network nor Java. The Check workflow builds, tests and syncs every push, and fails if a generated file differs from the committed one.
+`npm run sync` reads the SDK and the toolkit from GitHub at the commits pinned in `package.json`, or pins new ones first: `npm run sync -- <owner>/<repository>@<commit> <owner>/<repository>@<commit>` (the SDK, then the toolkit). It needs Node 22.13 or later and network access; behind a proxy, set `NODE_USE_ENV_PROXY=1`. A `GITHUB_TOKEN`, when set, is sent to the GitHub API only. Build and test need neither network nor Java. The Check workflow builds, tests and syncs every push, and fails if a generated file differs from the committed one. The Pages workflow publishes `site/` to the repository's GitHub Pages site on every push to `develop`.
 
 ## Publishing
 
