@@ -4,22 +4,23 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>EFX editor demo</title>
-  <!-- The page loads the modules from the repository as `npm run demo` serves it: the build in dist/
-       and CodeMirror from node_modules/, with no bundler. -->
+  <!-- The page loads the modules from the repository's layout, as `npm run demo` serves it and the
+       Pages workflow publishes it: the build in dist/ and CodeMirror from node_modules/, with no
+       bundler. The paths are relative to the page, so that the layout can be served under any path. -->
   <script type="importmap">
     {
       "imports": {
-        "@codemirror/autocomplete": "/node_modules/@codemirror/autocomplete/dist/index.js",
-        "@codemirror/language": "/node_modules/@codemirror/language/dist/index.js",
-        "@codemirror/state": "/node_modules/@codemirror/state/dist/index.js",
-        "@codemirror/view": "/node_modules/@codemirror/view/dist/index.js",
-        "@lezer/common": "/node_modules/@lezer/common/dist/index.js",
-        "@lezer/highlight": "/node_modules/@lezer/highlight/dist/index.js",
-        "@lezer/lr": "/node_modules/@lezer/lr/dist/index.js",
-        "@marijn/find-cluster-break": "/node_modules/@marijn/find-cluster-break/src/index.js",
-        "crelt": "/node_modules/crelt/index.js",
-        "style-mod": "/node_modules/style-mod/src/style-mod.js",
-        "w3c-keyname": "/node_modules/w3c-keyname/index.js"
+        "@codemirror/autocomplete": "../node_modules/@codemirror/autocomplete/dist/index.js",
+        "@codemirror/language": "../node_modules/@codemirror/language/dist/index.js",
+        "@codemirror/state": "../node_modules/@codemirror/state/dist/index.js",
+        "@codemirror/view": "../node_modules/@codemirror/view/dist/index.js",
+        "@lezer/common": "../node_modules/@lezer/common/dist/index.js",
+        "@lezer/highlight": "../node_modules/@lezer/highlight/dist/index.js",
+        "@lezer/lr": "../node_modules/@lezer/lr/dist/index.js",
+        "@marijn/find-cluster-break": "../node_modules/@marijn/find-cluster-break/src/index.js",
+        "crelt": "../node_modules/crelt/index.js",
+        "style-mod": "../node_modules/style-mod/src/style-mod.js",
+        "w3c-keyname": "../node_modules/w3c-keyname/index.js"
       }
     }
   </script>
@@ -43,9 +44,9 @@
   <p>
     <label>Text:
       <select id="kind">
-        <option value="template">Template file: test/sample.efx</option>
-        <option value="rules">Rules file: test/corpus/validation/stage-4m.efx</option>
-        <option value="expression">Single expression</option>
+        <option value="template" data-file="../test/sample.efx">Template file: test/sample.efx</option>
+        <option value="rules" data-file="../test/corpus/validation/stage-4m.efx">Rules file: test/corpus/validation/stage-4m.efx</option>
+        <option value="expression" data-file="expression.efx">Single expression</option>
       </select>
     </label>
   </p>
