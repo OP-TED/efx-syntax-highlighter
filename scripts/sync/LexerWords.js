@@ -30,6 +30,8 @@ export class LexerWords {
     this.#tables = [
       { name: 'lineTokens', tokens: this.#lineTokens(),
         comment: 'The token the lexer makes of each word it reserves at the start of a line or between its parts.' },
+      { name: 'skipWhitespaceTokens', tokens: this.#tokensIn('SKIP_WHITESPACE'),
+        comment: 'The token the lexer makes of each word it reads where it skips whitespace and finds none, as directly after a `;`.' },
       { name: 'templateTokens', tokens: this.#tokensIn('TEMPLATE'),
         comment: 'The token the lexer makes of each word it reserves in template text.' },
       { name: 'formatTokens', tokens: this.#tokensIn('FORMAT'),

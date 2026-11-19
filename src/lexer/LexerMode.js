@@ -10,7 +10,7 @@ export class LexerMode {
   }
 
   /** Hides the text the mode hides at the position, if any; whether there was some. */
-  hide(input) {
+  hide(input, stack) {
     return false;
   }
 

@@ -41,6 +41,12 @@ export const lineTokens = new Map([
   ['OTHERWISE DISPLAY', 'Otherwise'],
 ]);
 
+// The token the lexer makes of each word it reads where it skips whitespace and finds none, as directly after a `;`.
+export const skipWhitespaceTokens = new Map([
+  ['LET', 'Let'],
+  ['WITH', 'With'],
+]);
+
 // The token the lexer makes of each word it reserves in template text.
 export const templateTokens = new Map([
   ['INVOKE', 'Invoke'],

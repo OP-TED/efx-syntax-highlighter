@@ -42,7 +42,7 @@ export function lexerModeAt(stack) {
 export function readToken(input, stack) {
   const text = new LexerInput(input);
   const mode = lexerModeAt(stack);
-  if (!mode.hide(text)) {
+  if (!mode.hide(text, stack)) {
     mode.read(text, stack);
   }
 }

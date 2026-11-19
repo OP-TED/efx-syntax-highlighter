@@ -78,6 +78,15 @@ export class LexerInput {
     return this.#input.peek(offset) === SLASH && this.#input.peek(offset + 1) === SLASH;
   }
 
+  /** Whether a `;` comes before an offset, with only blanks between them. */
+  followsSemicolon(offset) {
+    let before = offset - 1;
+    while (this.isBlank(before)) {
+      before -= 1;
+    }
+    return this.isSemicolon(before);
+  }
+
   /** The number of blanks at an offset. */
   blanks(offset) {
     return this.#count(offset, (o) => this.isBlank(o));
