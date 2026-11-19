@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>EFX editor demo</title>
+  <title>EFX syntax highlighter demo</title>
   <!-- The page loads the modules from the repository's layout, as `npm run demo` serves it and the
        Pages workflow publishes it: the build in dist/ and CodeMirror from node_modules/, with no
        bundler. The paths are relative to the page, so that the layout can be served under any path. -->
@@ -33,18 +33,18 @@
   </style>
 </head>
 <body>
-  <h1>EFX editor</h1>
+  <h1>EFX syntax highlighter demo</h1>
   <p>
     The editor holds one kind of EFX text, in the EFX colours. While you type, it offers the words the
-    grammar takes at the cursor, the functions as calls; <kbd>Ctrl</kbd>+<kbd>Space</kbd> asks for them
-    anywhere, template text too. The field and node ids it offers are those the text uses. It is a
-    plain CodeMirror editor, with no undo history and no key bindings beyond the completion's: the
-    package depends on no more of CodeMirror.
+    grammar takes at the cursor, the functions as calls; <kbd>Ctrl</kbd>+<kbd>Space</kbd> (on a Mac
+    also <kbd>Option</kbd>+<kbd>I</kbd>) asks for them anywhere, template text too. The field and node
+    ids it offers are those the text uses. It is a plain CodeMirror editor, with no undo history and no
+    key bindings beyond the completion's: the package depends on no more of CodeMirror.
   </p>
   <p>
     <label>Text:
       <select id="kind">
-        <option value="template" data-file="../test/sample.efx">Template file: test/sample.efx</option>
+        <option value="template" data-file="../test/corpus/view-templates/30.efx">Template file: test/corpus/view-templates/30.efx</option>
         <option value="rules" data-file="../test/corpus/validation/stage-4m.efx">Rules file: test/corpus/validation/stage-4m.efx</option>
         <option value="expression" data-file="expression.efx">Single expression</option>
       </select>

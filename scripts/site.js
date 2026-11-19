@@ -41,5 +41,5 @@ for (const module of modules) {
   copy(packageOf(file));
 }
 fs.writeFileSync(path.join(SITE, 'index.html'),
-  '<!doctype html>\n<meta http-equiv="refresh" content="0; url=demo/">\n<a href="demo/">EFX editor demo</a>\n');
+  '<!doctype html>\n<meta http-equiv="refresh" content="0; url=demo/">\n<a href="demo/">EFX syntax highlighter demo</a>\n');
 console.log('Site written to site/.');
