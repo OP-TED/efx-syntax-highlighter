@@ -56,7 +56,7 @@
     "antlr4ng": "3.0.16"
   },
   "config": {
-    "sdk": "rousso/eForms-SDK@d409925d69989487ab80f5f3d6280688bc1ce2fb",
+    "sdk": "rousso/eForms-SDK@53dd246568ba5afdcb5c1fb13ca3d14c3ea98578",
     "toolkit": "rousso/efx-toolkit-java@b861f16fc6d97d5ed28d658ec21147b79c76a9ac"
   }
 }

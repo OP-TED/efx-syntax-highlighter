@@ -19,10 +19,11 @@
   includeDirective* GlobalDeclaration* TemplateDeclaration* (TemplateLine* | includeDirective) OtherSections?
 }
 
-// A rules file, the second top (rulesFile in Efx.g4); its rules follow the declarations.
+// A rules file, the second top (rulesFile in Efx.g4); its rules follow the declarations. A file that
+// is only included in another may have no stage, such as a file of declarations.
 @top RulesFile {
   includeDirective* ApiEndpointDeclaration* (DynamicFunctionDeclaration | GlobalVariableDeclaration)*
-  (ValidationStage | includeDirective)+
+  (ValidationStage | includeDirective)*
 }
 
 // A single expression with its context, as the toolkit reads one (singleExpression in Efx.g4).

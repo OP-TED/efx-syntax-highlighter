@@ -13,7 +13,7 @@ import { TokenNames } from './conformance/TokenNames.js';
 // templates and the rules files. The test fails when they change, in either direction, until that
 // commit updates them here.
 const PINNED = {
-  validation: { files: 5, tokens: 121215 },
+  validation: { files: 6, tokens: 121215 },
   'view-templates': { files: 51, tokens: 349125 },
 };
 
