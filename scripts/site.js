@@ -34,7 +34,11 @@ for (const file of files) {
   copy(file);
 }
 for (const module of modules) {
-  copy(packageOf(path.join(PAGE, module)));
+  const file = path.join(PAGE, module);
+  if (!fs.existsSync(file)) {
+    throw new Error(`The import map names ${module}, which is not in the repository.`);
+  }
+  copy(packageOf(file));
 }
 fs.writeFileSync(path.join(SITE, 'index.html'),
   '<!doctype html>\n<meta http-equiv="refresh" content="0; url=demo/">\n<a href="demo/">EFX editor demo</a>\n');
