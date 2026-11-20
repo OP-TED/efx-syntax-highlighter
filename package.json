@@ -57,7 +57,7 @@
     "antlr4ng": "3.0.16"
   },
   "config": {
-    "sdk": "OP-TED/eForms-SDK@b43466c004b0865a979c9ffd2cc84781bf081fe0",
-    "toolkit": "OP-TED/efx-toolkit-java@1fa3745e5fe2d04acd7fcb337702f328f432a6fb"
+    "sdk": "OP-TED/eForms-SDK@e64ae124230cfae2f44924291e1909baada2102d",
+    "toolkit": "OP-TED/efx-toolkit-java@2b1178aa95b35b988995a8543d0d1e0f69c3b53d"
   }
 }

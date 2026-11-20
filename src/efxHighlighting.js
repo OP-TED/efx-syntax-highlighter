@@ -72,7 +72,7 @@ export const EFX_STYLES = {
   "FreeText OtherEscapeSequence CharacterReference NewLine": t.special(t.string),
 
   "Assignment Comparison Plus Minus Star Slash Percent ColonColon": t.operator,
-  "OpenParenthesis CloseParenthesis OpenBracket CloseBracket Pipe Colon Dot DotDot Ellipsis": t.punctuation,
+  "OpenParenthesis CloseParenthesis OpenBracket CloseBracket Pipe Colon Ellipsis": t.punctuation,
   "AttributeReference/Slash AttributeExpression/Slash": t.punctuation,
   "StartContextBlock StartExpressionBlock StartLabelBlock StartHyperlinkBlock StartSelectorBlock EndBlock": t.bracket,
   Comment: t.lineComment,

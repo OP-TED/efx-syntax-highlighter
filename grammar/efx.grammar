@@ -228,7 +228,7 @@ VariableDeclaration { Let variableInitializer Semicolon }
 // After a variable list, a comma may lead to the context or to the next variable (~contextComma).
 ContextDeclarationBlock { (VariableList ~contextComma Comma)? ContextDeclaration (Comma VariableList)? }
 
-ContextDeclaration { ContextVariableInitializer | fieldContext | nodeContext | Dot | DotDot | Slash }
+ContextDeclaration { ContextVariableInitializer | fieldContext | nodeContext }
 
 VariableList { variableInitializer (~contextComma Comma variableInitializer)* }
 
@@ -238,7 +238,7 @@ variableInitializer {
 }
 
 ContextVariableInitializer {
-  ContextType Colon VariablePrefix UnquotedIdentifier Assignment (fieldContext | nodeContext | Slash)
+  ContextType Colon VariablePrefix UnquotedIdentifier Assignment (fieldContext | nodeContext)
 }
 
 // ---- Rules files ----
@@ -517,8 +517,6 @@ FunctionDeclaration {
   Minus { "-" }
   Comma { "," }
   Ellipsis { "..." }
-  DotDot { ".." }
-  Dot { "." }
   Colon { ":" }
 
   @precedence { MixedIndent, Tabs, Spaces }
@@ -526,8 +524,6 @@ FunctionDeclaration {
   @precedence { DateLiteral, TimeLiteral, DayTimeDurationLiteral, YearMonthDurationLiteral, NodeId, FieldId, BtId, Identifier, DecimalLiteral, IntegerLiteral }
   @precedence { Comparison, Assignment }
   @precedence { StageHeaderStart, Minus }
-  @precedence { Ellipsis, DotDot, Dot }
-  @precedence { DecimalLiteral, Dot }
 }
 
 @skip { space | Comment }
