@@ -18,9 +18,9 @@ export const EFX1_STYLES = {
   "DateFunction TimeFunction DayTimeDurationFunction YearMonthDurationFunction AddMeasure SubtractMeasure": t.function(t.keyword),
   "DistinctValuesFunction UnionFunction IntersectFunction ExceptFunction SequenceEqualFunction": t.function(t.keyword),
 
-  // Literals.
+  // Literals, and the outline numbers of a template.
   "STRING UUIDV4 INTEGER DECIMAL DATE TIME DayTimeDurationLiteral YearMonthDurationLiteral": t.literal,
-  "True False Always Never": t.literal,
+  "True False Always Never OutlineNumber": t.literal,
 
   // The data of a notice: fields, nodes and attributes.
   "FieldId NodeId BtId AttributeReference/Identifier": t.propertyName,
@@ -35,7 +35,7 @@ export const EFX1_STYLES = {
   FreeText: t.special(t.string),
 
   "Comparison Plus Minus Star Slash Percent ColonColon": t.operator,
-  "OpenParenthesis CloseParenthesis OpenBracket CloseBracket Pipe": t.punctuation,
+  "OpenParenthesis CloseParenthesis OpenBracket CloseBracket Pipe Comma": t.punctuation,
   SlashAt: t.punctuation,
   "StartExpression StartLabel StartSelector EndExpression EndLabel": t.bracket,
   Comment: t.lineComment,

@@ -4,7 +4,8 @@
 // few that are long only to test the lexer's limits. It also checks, for each version, that every
 // node its style table (src/efx2/efx2Highlighting.js, src/efx1/efx1Highlighting.js) names is a node
 // of its grammar, as a name that is not one styles nothing, silently; and that each occurs in the
-// pinned texts, so that a change to any line of the table changes a pinned run. `node test/styles.js
+// pinned texts, so that a change to any line of the table changes a pinned run; and that every
+// token of the pinned texts is coloured by the EFX colours, but the blanks left plain on purpose. `node test/styles.js
 // --write` writes the pinned lists anew, so that the commit that changes the highlighting shows each
 // change. It reads the build in dist/, so it runs after `npm run build`.
 
@@ -16,7 +17,17 @@ import { EFX2_STYLES } from '../dist/efx2/efx2Highlighting.js';
 import { parser as efx2Parser } from '../dist/efx2/parser.js';
 import { ENTRIES as EFX1_ENTRIES } from './efx1/entries/entries.js';
 import { ENTRIES as EFX2_ENTRIES } from './efx2/trees/entries.js';
+import { highlightTree } from '@lezer/highlight';
+import { efxHighlightStyle } from '../dist/efxTheme.js';
 import { StyleDump } from './styles/StyleDump.js';
+
+// The tokens each version leaves plain on purpose: the blanks, indentation and line ends. Every other token of
+// the pinned texts must be given a colour by its style table, so that a token the table forgets is
+// found here rather than in an editor.
+const PLAIN = {
+  'EFX-2': new Set(['Whitespace', 'Spaces', 'Tabs', 'MixedIndent', 'CRLF']),
+  'EFX-1': new Set(['Whitespace', 'Spaces', 'Tabs', 'MixedIndent', 'CRLF']),
+};
 
 // The longest entry text pinned: longer ones only test the limits of the lexer.
 const LONGEST_ENTRY = 1000;
@@ -86,6 +97,31 @@ function textsOf(pin) {
 const runsOf = (parser, pin) => textsOf(pin).flatMap(({ text, top, title }) =>
   [...(title === undefined ? [] : [title]), ...StyleDump.of(parser, text, top)]);
 
+/**
+ * The tokens of a pin's texts that the EFX colours leave uncoloured, by name: a token none of whose
+ * characters the EFX colours (efxHighlightStyle) colour, through the tags its style table gives.
+ */
+function uncolouredTokensOf(parser, pin) {
+  const uncoloured = new Set();
+  for (const { text, top } of textsOf(pin)) {
+    const tree = parser.configure({ top }).parse(text);
+    const coloured = new Uint8Array(text.length);
+    highlightTree(tree, efxHighlightStyle, (from, to) => coloured.fill(1, from, to));
+    tree.iterate({
+      enter: (node) => {
+        // A token of a text the grammar cannot read, under an error node, has no colour of its own.
+        if (node.node.firstChild !== null || node.type.isTop || node.type.isError || node.node.parent?.type.isError) {
+          return;
+        }
+        if (node.to > node.from && !coloured.subarray(node.from, node.to).includes(1)) {
+          uncoloured.add(node.name);
+        }
+      },
+    });
+  }
+  return uncoloured;
+}
+
 /** The nodes of the trees of a pin's texts, by name and by parent and name, as a style table names them. */
 function nodesOf(parser, pin) {
   const nodes = new Set();
@@ -114,6 +150,13 @@ for (const { name, parser, styles, pinned } of VERSIONS) {
   const absent = selectors.filter((selector) => !occurring.has(selector));
   if (absent.length > 0) {
     console.error(`The ${name} style table names nodes that no pinned text has: ${absent.join(', ')}`);
+    process.exitCode = 1;
+  }
+
+  const uncoloured = [...new Set(pinned.flatMap((pin) => [...uncolouredTokensOf(parser, pin)]))]
+    .filter((token) => !PLAIN[name].has(token));
+  if (uncoloured.length > 0) {
+    console.error(`The EFX colours leave these ${name} tokens uncoloured: ${uncoloured.join(', ')}`);
     process.exitCode = 1;
   }
 

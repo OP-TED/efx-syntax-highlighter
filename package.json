@@ -1,10 +1,14 @@
 {
   "name": "@op-ted/efx-syntax-highlighter",
-  "version": "0.4.0",
+  "version": "0.4.1",
   "description": "Lezer-based parser and CodeMirror 6 language support for EFX: syntax highlighting and completions.",
   "main": "dist/index.js",
+  "types": "dist/index.d.ts",
   "exports": {
-    ".": "./dist/index.js"
+    ".": {
+      "types": "./dist/index.d.ts",
+      "default": "./dist/index.js"
+    }
   },
   "files": [
     "dist",
@@ -12,7 +16,7 @@
   ],
   "scripts": {
     "build": "node scripts/build.js",
-    "test": "node test/synced.js && node test/package.js && node test/sync.js && node test/lexer.js && node test/conformance.js && node test/styles.js && node test/efx2/trees.js && node test/efx2/completions.js && node test/efx1/entries.js && node test/incremental.js",
+    "test": "node test/synced.js && node test/package.js && node test/sync.js && node test/lexer.js && node test/conformance.js && node test/styles.js && node test/efx2/trees.js && node test/efx2/completions.js && node test/efx1/entries.js && node test/incremental.js && node test/types.js",
     "sync": "node scripts/sync.js",
     "demo": "node scripts/demo.js",
     "site": "node scripts/site.js"
@@ -54,7 +58,8 @@
   "devDependencies": {
     "@lezer/generator": "^1.3.0",
     "antlr-ng": "1.0.10",
-    "antlr4ng": "3.0.16"
+    "antlr4ng": "3.0.16",
+    "typescript": "5.9.3"
   },
   "config": {
     "sdk": "OP-TED/eForms-SDK@e64ae124230cfae2f44924291e1909baada2102d",

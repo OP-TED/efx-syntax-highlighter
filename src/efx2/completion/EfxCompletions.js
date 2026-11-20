@@ -70,7 +70,10 @@ export class EfxCompletions {
 
   static #symbolOptions(expected, state) {
     const { fields, nodes } = state.facet(efxSymbols);
-    const options = (ids, type, detail) => ids.map((id) => ({ label: id, type, detail }));
+    // Each id is shown with its type, if the application gives one, or else with what it is.
+    const options = (entries, type, what) => entries.map((entry) => (typeof entry === 'string'
+      ? { label: entry, type, detail: what }
+      : { label: entry.id, type, detail: entry.type ?? what }));
     return [
       ...(expected.has(terms.FieldId) ? options(fields, 'constant', 'field') : []),
       ...(expected.has(terms.NodeId) ? options(nodes, 'namespace', 'node') : []),

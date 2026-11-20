@@ -12,8 +12,11 @@ import { completionItems } from '../../dist/efx2/generated/completions.js';
 import * as words from '../../dist/efx2/generated/words.js';
 import { efx, efxSymbols } from '../../dist/index.js';
 
-// The ids an application might give the editor.
-const SYMBOLS = efxSymbols.of({ fields: ['BT-01-notice', 'BT-26(m)-Procedure'], nodes: ['ND-Root', 'ND-Lot'] });
+// The ids an application might give the editor, some with their type, as two extensions that add up.
+const SYMBOLS = [
+  efxSymbols.of({ fields: [{ id: 'BT-01-notice', type: 'code' }, 'BT-26(m)-Procedure'], nodes: ['ND-Root'] }),
+  efxSymbols.of({ nodes: [{ id: 'ND-Lot' }] }),
+];
 
 const PROPERTIES = completionItems.filter(({ kind }) => kind === 'PROPERTY').map(({ label }) => label.slice(1));
 const FUNCTIONS = [...new Set(completionItems.filter(({ kind }) => kind === 'FUNCTION').map(({ label }) => label))];
@@ -129,6 +132,14 @@ const CHECKS = {
     assert.ok(!labels.includes('ND-Root'));
     assert.deepEqual(template('1 {ND-Root} #{field|‸').labels().sort(),
       ['description', 'hint', 'name', 'template', 'text', 'when-false', 'when-true']);
+  },
+  'an id is shown with its type, if it is given one, or else with what it is': () => {
+    assert.deepEqual(expression('‸').option('BT-01-notice'), { label: 'BT-01-notice', type: 'constant', detail: 'code' });
+    assert.deepEqual(expression('‸').option('BT-26(m)-Procedure'), { label: 'BT-26(m)-Procedure', type: 'constant', detail: 'field' });
+    assert.deepEqual(template('1 {‸').option('ND-Lot'), { label: 'ND-Lot', type: 'namespace', detail: 'node' });
+    // The ids are kept as the application gave them, as in 0.4.0.
+    assert.deepEqual(Editor.holding('expression', '').facet(efxSymbols).fields,
+      [{ id: 'BT-01-notice', type: 'code' }, 'BT-26(m)-Procedure']);
   },
   'after the pipe of an expression block, the format options': () => {
     assert.deepEqual(template('1 {ND-Root} ${BT-01-notice | ‸').labels().sort(), ['long', 'medium', 'no-formatting', 'no-unit', 'short']);
