@@ -89,12 +89,15 @@ const CHECKS = {
   },
   'the demo page reads each of its texts with no error': () => {
     const page = fs.readFileSync(new URL('../demo/index.html', import.meta.url), 'utf8');
-    const options = [...page.matchAll(/<option [^>]*data-kind="([^"]+)" data-version="(\d)" data-file="([^"]+)"/g)];
+    // Each option names its version, and its texts as a JSON list of { kind, file, label }.
+    const options = [...page.matchAll(/<option [^>]*data-version="(\d)" data-texts='([^']+)'/g)];
     assert.ok(options.length > 0);
-    for (const [, kind, version, file] of options) {
-      const text = fs.readFileSync(new URL(`../demo/${file}`, import.meta.url), 'utf8');
-      const tree = treeOf(EditorState.create({ doc: text, extensions: [efx(kind, { version: Number(version) })] }));
-      assert.equal(errorsIn(tree), 0, file);
+    for (const [, version, texts] of options) {
+      for (const { kind, file } of JSON.parse(texts)) {
+        const text = fs.readFileSync(new URL(`../demo/${file}`, import.meta.url), 'utf8');
+        const tree = treeOf(EditorState.create({ doc: text, extensions: [efx(kind, { version: Number(version) })] }));
+        assert.equal(errorsIn(tree), 0, file);
+      }
     }
   },
   'a parse of some parts of a document reads them as one text': () => {

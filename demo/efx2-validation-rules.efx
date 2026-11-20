@@ -1,0 +1,33 @@
+// Validation rules: what a notice must satisfy before it is published.
+// Each rule set names its context; each rule says what it checks, how serious a failure is,
+// which field it is about, and the notice subtypes it applies to.
+
+--- STAGE 1a ---
+
+WITH ND-Root
+  ASSERT OPP-070-notice is present
+    AS ERROR R-DEM-001
+    FOR OPP-070-notice
+    IN *;
+  ASSERT ND-Lot is present
+    AS ERROR R-DEM-002
+    FOR ND-Lot
+    IN 7-40,E3-E6;
+
+--- STAGE 2a ---
+
+// Identifiers of the lots of the notice
+LET text* : $lot-ids = BT-137-Lot;
+
+WITH ND-Root
+  ASSERT count($lot-ids) == count(distinct-values($lot-ids))
+    AS WARNING R-DEM-003
+    FOR BT-137-Lot
+    IN 7-40;
+
+WITH ND-Lot
+  WHEN BT-27-Lot is present
+  ASSERT BT-27-Lot > 0
+    AS ERROR R-DEM-004
+    FOR BT-27-Lot
+    IN 7-40;

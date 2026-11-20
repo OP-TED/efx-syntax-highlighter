@@ -1,0 +1,214 @@
+/* The demo page's own styles, on top of the TED design system's tokens in ted/. Every value is a
+   token, except where a rule says otherwise. The syntax colours are the package's, not this page's. */
+
+body {
+  margin: 0;
+  background: var(--gs-base-color-white);
+  color: var(--gs-base-color-gray-100);
+  font-family: var(--gs-base-font-family-default);
+  line-height: var(--gs-base-line-height-xl);
+}
+
+.page {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+}
+
+main {
+  flex-grow: 1;
+  width: 100%;
+  max-width: var(--gs-base-max-width-content);
+  box-sizing: border-box;
+  margin: 0 auto;
+  padding: var(--gs-base-spacing-2xl) var(--gs-base-spacing-l) var(--gs-base-spacing-3xl);
+}
+
+main a {
+  color: var(--gs-base-color-eu-blue-100);
+  text-underline-offset: 0.15rem;
+}
+
+main a:visited {
+  color: var(--gs-base-color-lavender-110);
+}
+
+main a:hover {
+  text-decoration: none;
+}
+
+h1 {
+  margin: 0 0 var(--gs-base-spacing-s);
+}
+
+.lead {
+  margin: 0 0 var(--gs-base-spacing-s);
+  max-width: 65ch;
+}
+
+.intro {
+  margin: 0 0 var(--gs-base-spacing-xl);
+  max-width: 75ch;
+}
+
+.note {
+  margin: var(--gs-base-spacing-s) 0 0;
+  max-width: 75ch;
+  color: var(--gs-base-color-gray-75);
+}
+
+kbd {
+  font-family: var(--gs-base-font-family-monospace);
+  font-size: var(--gs-base-font-size-xs);
+  background: var(--gs-base-color-gray-5);
+  border: 1px solid var(--gs-base-color-gray-20);
+  border-bottom-width: 2px;
+  border-radius: var(--gs-base-radius-xs);
+  padding: 0 var(--gs-base-spacing-2xs);
+  color: var(--gs-base-color-gray-100);
+}
+
+/* The form group and select, as the design system's FormGroup and Select draw them. */
+
+.form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 6px; /* FormGroup's own gap */
+  max-width: 32rem;
+  margin-bottom: var(--gs-base-spacing-l);
+}
+
+.form-group label {
+  display: block;
+  font-size: var(--gs-base-font-size-s);
+  font-weight: 700;
+}
+
+.select {
+  position: relative;
+}
+
+.select select {
+  width: 100%;
+  box-sizing: border-box;
+  appearance: none;
+  font: inherit;
+  font-size: var(--gs-base-font-size-m);
+  line-height: 1.4;
+  color: var(--gs-base-color-gray-100);
+  padding: 10px 40px 10px 14px; /* Select's own padding, room for the chevron */
+  border: 1px solid var(--gs-base-color-gray-60);
+  border-radius: var(--gs-base-radius-s);
+  background: var(--gs-base-color-white);
+  cursor: pointer;
+}
+
+.select i {
+  position: absolute;
+  display: inline-flex;
+  font-size: 18px; /* Select's chevron size */
+  right: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: var(--gs-base-color-gray-75);
+  pointer-events: none;
+}
+
+/* The editor: CodeMirror inside a TED field frame. The ids raise these rules above CodeMirror's own
+   theme, whatever order the styles load in. */
+
+#editor .cm-editor {
+  max-height: 75vh;
+  border: 1px solid var(--gs-base-color-gray-60);
+  border-radius: var(--gs-base-radius-s);
+  background: var(--gs-base-color-white);
+}
+
+#editor .caption {
+  margin: var(--gs-base-spacing-m) 0 var(--gs-base-spacing-2xs);
+  font-size: var(--gs-base-font-size-s);
+  font-weight: 700;
+}
+
+#editor .caption:first-child {
+  margin-top: 0;
+}
+
+#editor .cm-editor.cm-focused {
+  outline: 2px solid var(--gs-base-color-link-110);
+  outline-offset: 2px;
+}
+
+#editor .cm-scroller {
+  font-family: var(--gs-base-font-family-monospace);
+  font-size: var(--gs-base-font-size-s);
+  line-height: var(--gs-base-line-height-l);
+}
+
+#editor .cm-content {
+  padding: var(--gs-base-spacing-s) 0;
+}
+
+#editor .cm-line {
+  padding: 0 var(--gs-base-spacing-m);
+}
+
+#editor .cm-tooltip.cm-tooltip-autocomplete {
+  background: var(--gs-base-color-white);
+  border: 1px solid var(--gs-base-color-gray-20);
+  border-radius: var(--gs-base-radius-s);
+  box-shadow: var(--gs-base-shadow-2);
+  padding: var(--gs-base-spacing-2xs) 0;
+}
+
+#editor .cm-tooltip.cm-tooltip-autocomplete > ul {
+  font-family: var(--gs-base-font-family-monospace);
+  font-size: var(--gs-base-font-size-s);
+}
+
+#editor .cm-tooltip.cm-tooltip-autocomplete > ul > li {
+  display: flex;
+  align-items: center;
+  padding: var(--gs-base-spacing-2xs) var(--gs-base-spacing-s);
+  color: var(--gs-base-color-gray-100);
+}
+
+/* The type of a suggestion, such as "node" or "field", at the right edge of its line. */
+#editor .cm-tooltip.cm-tooltip-autocomplete .cm-completionDetail {
+  margin-left: auto;
+  padding-left: var(--gs-base-spacing-m);
+}
+
+#editor .cm-tooltip.cm-tooltip-autocomplete > ul > li[aria-selected] {
+  background: var(--gs-base-color-eu-blue-100);
+  color: var(--gs-base-color-white);
+}
+
+#editor .cm-tooltip.cm-tooltip-autocomplete > ul > li[aria-selected] * {
+  color: var(--gs-base-color-white);
+}
+
+/* Third-party components */
+
+.third-party {
+  margin-top: var(--gs-base-spacing-3xl);
+  padding-top: var(--gs-base-spacing-l);
+  border-top: 1px solid var(--gs-base-color-gray-20);
+}
+
+.third-party h2 {
+  margin: 0 0 var(--gs-base-spacing-xs);
+}
+
+.third-party p {
+  margin: 0;
+  max-width: 75ch;
+}
+
+/* The footer's links change on hover in the design system's SiteFooter, which does it in script; the
+   static markup does it here, over its inline styles. */
+
+footer a:hover {
+  color: var(--gs-base-color-eu-blue-140) !important;
+  text-decoration: underline !important;
+}

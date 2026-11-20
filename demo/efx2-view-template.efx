@@ -1,0 +1,24 @@
+// A view template: how a notice is displayed to its readers.
+// A TEMPLATE section declares a template that the lines below can call with INVOKE.
+// In the MAIN section, the number at the start of a line is its outline number,
+// and the indentation sets its level.
+
+--- TEMPLATE organisation-name ---
+PARAMETERS text:$org-id;
+DISPLAY ${BT-500-Organization-Company[OPT-200-Organization-Company == $org-id]:preferredLanguageText};
+
+--- MAIN ---
+1 WITH ND-Root DISPLAY #{auxiliary|text|notice-information};
+	1 WITH BT-701-notice DISPLAY #{name}: ${BT-701-notice} - ${BT-757-notice};
+	2 WITH BT-02-notice DISPLAY #{name}: #value;
+	3 WITH BT-05(a)-notice DISPLAY #{name}: ${BT-05(a)-notice} ${BT-05(b)-notice};
+2 WITH ND-Root DISPLAY #{auxiliary|text|buyer};
+	1 WITH OPT-300-Procedure-Buyer INVOKE organisation-name(OPT-300-Procedure-Buyer);
+	2 WITH BT-11-Procedure-Buyer DISPLAY #{name}: #value;
+3 WITH ND-Lot DISPLAY #{auxiliary|text|lot} ${BT-137-Lot};
+	1 WITH BT-21-Lot DISPLAY #{name}: $value;
+	2 WITH BT-24-Lot WHEN BT-24-Lot is present DISPLAY #{name}: $value OTHERWISE DISPLAY #{name}: -;
+	3 WITH BT-27-Lot DISPLAY #{name}: ${format-number(BT-27-Lot, '#,##0.00')} ${BT-27-Lot/@currencyID};
+
+--- SUMMARY ---
+WITH BT-02-notice DISPLAY #value;

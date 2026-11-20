@@ -1,8 +1,7 @@
 // Gathers the demo page and what it loads into site/, the folder the Pages workflow publishes: the page
-// in demo/, the build in dist/, the files its options show and the packages its import map names. Each
-// is copied to its place in the repository, so that the page's relative paths hold. Run after
-// `npm run sync`, which writes the files in test/ that the options show, and `npm run build`; a file
-// missing from the repository fails the script.
+// in demo/, with its samples and the TED look, the build in dist/ and the packages its import map
+// names. Each is copied to its place in the repository, so that the page's relative paths hold. Run
+// after `npm run build`; a sample or package missing from the repository fails the script.
 
 import fs from 'node:fs';
 import path from 'node:path';
@@ -25,14 +24,19 @@ function packageOf(file) {
 }
 
 const page = fs.readFileSync(path.join(PAGE, 'index.html'), 'utf8');
-const files = [...page.matchAll(/data-file="([^"]+)"/g)].map((match) => path.join(PAGE, match[1]));
+// The samples the options show: each option's data-texts is a JSON list of { kind, file, label }.
+const files = [...page.matchAll(/data-texts='([^']+)'/g)]
+  .flatMap((match) => JSON.parse(match[1].replaceAll('&#39;', "'").replaceAll('&lt;', '<').replaceAll('&gt;', '>').replaceAll('&amp;', '&')))
+  .map(({ file }) => path.join(PAGE, file));
 const modules = Object.values(JSON.parse(page.match(/<script type="importmap">([^<]*)<\/script>/)[1]).imports);
 
 fs.rmSync(SITE, { recursive: true, force: true });
 copy(PAGE);
 copy(path.join(ROOT, 'dist'));
 for (const file of files) {
-  copy(file);
+  if (!fs.existsSync(file)) {
+    throw new Error(`An option shows ${path.relative(ROOT, file)}, which is not in the repository.`);
+  }
 }
 for (const module of modules) {
   const file = path.join(PAGE, module);

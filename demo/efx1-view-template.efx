@@ -1,0 +1,14 @@
+// A view template in EFX-1, the version of EFX before SDK 2.
+// The number at the start of a line is its outline number; the indentation sets its level.
+
+1 {ND-Root} #{auxiliary|text|notice-information}
+	1 {BT-701-notice} #{name}: ${BT-701-notice} - ${BT-757-notice}
+	2 {BT-02-notice} #{name}: #value
+	3 {BT-05(a)-notice} #{name}: ${BT-05(a)-notice} ${BT-05(b)-notice}
+2 {ND-Root} #{auxiliary|text|buyer}
+	1 {ND-ContractingParty} #{field|name|BT-500-Organization-Company}: ${for text:$orgid in OPT-300-Procedure-Buyer return BT-500-Organization-Company[OPT-200-Organization-Company == $orgid]}
+	2 {BT-11-Procedure-Buyer} #{name}: #value
+3 {ND-Lot} #{auxiliary|text|lot} ${BT-137-Lot}
+	1 {BT-21-Lot} #{name}: $value
+	2 {BT-24-Lot} #{name}: $value
+	3 {BT-27-Lot} #{name}: ${format-number(BT-27-Lot, '#,##0.00')}
