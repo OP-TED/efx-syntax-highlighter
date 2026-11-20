@@ -9,10 +9,11 @@ const SAME_NAMES = [
   'FieldId', 'NodeId', 'BtId', 'Identifier',
   // Punctuation and prefixes.
   'Colon', 'Pipe', 'Comma', 'Semicolon', 'Assignment', 'OpenParenthesis', 'CloseParenthesis', 'OpenBracket',
-  'CloseBracket', 'StartContextBlock', 'StartExpressionBlock', 'EndBlock', 'VariablePrefix', 'HashPrefix', 'AtPrefix', 'FunctionPrefix',
+  'CloseBracket', 'Ellipsis', 'StartExpressionBlock', 'EndBlock', 'VariablePrefix', 'HashPrefix', 'AtPrefix', 'FunctionPrefix',
   // Template files: lines, sections and includes.
-  'Tabs', 'OutlineNumber', 'CRLF', 'Let', 'With', 'When', 'Display', 'Otherwise', 'Invoke', 'Index', 'By',
-  'Template', 'SummarySectionHeader', 'NavigationSectionHeader', 'IncludeDirective', 'IncludePath',
+  'Tabs', 'Spaces', 'OutlineNumber', 'Let', 'With', 'When', 'Display', 'Otherwise', 'Invoke', 'Index', 'By',
+  'MainSectionHeader', 'TemplateSectionHeaderStart', 'TemplateSectionHeaderEnd', 'Parameters',
+  'SummarySectionHeader', 'NavigationSectionHeader', 'IncludeDirective', 'IncludePath',
   // Rules files.
   'StageHeaderStart', 'StageIdentifier', 'StageHeaderEnd', 'RuleIdentifier', 'Assert', 'As', 'Error', 'Warning',
   'FOR', 'IN', 'Scope', 'Post', 'EVERY', 'Endpoint', 'Dynamic', 'Call', 'Api', 'On', 'Warn',

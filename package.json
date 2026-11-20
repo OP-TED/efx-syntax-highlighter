@@ -1,6 +1,6 @@
 {
   "name": "@op-ted/efx-syntax-highlighter",
-  "version": "0.4.1",
+  "version": "0.5.0",
   "description": "Lezer-based parser and CodeMirror 6 language support for EFX: syntax highlighting and completions.",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
@@ -62,8 +62,8 @@
     "typescript": "5.9.3"
   },
   "config": {
-    "sdk": "OP-TED/eForms-SDK@e64ae124230cfae2f44924291e1909baada2102d",
-    "toolkit": "OP-TED/efx-toolkit-java@2b1178aa95b35b988995a8543d0d1e0f69c3b53d",
+    "sdk": "OP-TED/eForms-SDK@148e48dd30f76d60b2d6b864aa32f36af5f5974b",
+    "toolkit": "OP-TED/efx-toolkit-java@dd14c740a9da8ce6bc8ede04aae133fa919d82b7",
     "sdk1": "OP-TED/eForms-SDK@201c7f738cb9d500433d125af95f3a02b74710c0"
   }
 }

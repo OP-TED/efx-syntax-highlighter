@@ -27,10 +27,11 @@ const TYPE_TOKENS = { ShorthandIndirectLabelReferenceFromContextField: 'sharpVal
 const FOLLOWED_BY = { Slash: { AtPrefix: 'AttributeSlash' } };
 
 /**
- * The token types the grammar takes in no rule: words Efx.g4 never uses, and the types of rules that
- * never make a token, since a rule before them always matches the same text.
+ * The token types the grammar takes in no rule: words Efx.g4 never uses, the types of rules that
+ * never make a token, since a rule before them always matches the same text, and CRLF, which the
+ * lexer makes only to end a template line that lacks its semicolon, an error for both parsers.
  */
-export const UNUSED_TYPES = ['ValueKeyword', 'Codelist', 'Code', 'FieldIdentifier', 'NodeIdentifier',
+export const UNUSED_TYPES = ['ValueKeyword', 'Codelist', 'Code', 'FieldIdentifier', 'NodeIdentifier', 'CRLF',
   ...['BT', 'FIELD', 'NODE', 'DISPLAY_GROUP', 'VIEW_TEMPLATE', 'NOTICE', 'AUXILIARY', 'RULE', 'EXPRESSION', 'INTERVAL',
     'PATTERN'].map((name) => `ASSET_TYPE_${name}`),
   ...['NAME', 'WHEN_TRUE', 'WHEN_FALSE', 'DESCRIPTION', 'TOOLTIP', 'TEMPLATE'].map((name) => `LABEL_TYPE_${name}`)];

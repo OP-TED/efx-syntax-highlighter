@@ -1,4 +1,4 @@
-# EFX Syntax Highlighter 0.4.1 Release Notes
+# EFX Syntax Highlighter 0.5.0 Release Notes
 
 _The EFX Syntax Highlighter gives [CodeMirror 6](https://codemirror.net/) editors syntax highlighting and completions for [EFX](https://docs.ted.europa.eu/eforms/latest/efx), the expression and template language of the eForms SDK._
 
@@ -6,19 +6,28 @@ _The EFX Syntax Highlighter gives [CodeMirror 6](https://codemirror.net/) editor
 
 ## In this release
 
-This release fixes three things an application noticed when it moved to 0.4.0, and adds types for applications written in TypeScript. An application that sets up its editor as for 0.4.0 needs no change.
+This release follows the EFX-2 grammar of the eForms SDK as it now stands, on its `efx-2` branch: the SDK has removed some forms from EFX-2 and added others. The editor reads EFX-2 text as the SDK does, so a text written for 0.4 that uses a removed form is now shown with an error. EFX-1 is unchanged. An application that sets up its editor as for 0.4 needs no change.
 
-### Field types beside field ids
+### What EFX-2 has gained
 
-- `efxSymbols` also takes an id with its type, `{ id: 'BT-01-notice', type: 'code' }`, as well as a plain id. The completions show the type beside the id, as an application's own completions often did; an id without a type shows "field" or "node", as before.
+- A template file can declare its callable templates in `--- TEMPLATE name ---` sections, each with an optional `PARAMETERS` line, followed by the main section under its `--- MAIN ---` heading. The heading is optional when the file has no template sections.
+- `#include "path"` may end with a `;`.
+- The last line of a file may end with a comment and no line end.
 
-### Colours
+### What EFX-2 has lost
 
-- Outline numbers (the `1` before `WITH` in a template line) are coloured as literals, in EFX-2 and EFX-1. In 0.4.0 they had no colour.
-- Commas, and in EFX-2 the semicolons that end template lines, are coloured as punctuation, as brackets and pipes are. In 0.4.0 they had no colour.
-- A test now checks that every token of the tested texts has a colour, but the blanks, indentation and line ends, which stay plain on purpose.
+- The EFX-1 forms: the template line `{context} template` and the single expressions `{context} ${expression}` and `{context} &{selection}`. Write `WITH context DISPLAY template;`, `WITH context COMPUTE expression` and `WITH context SELECT selection`.
+- Templates declared with `LET template:name(...)`: they are declared in `--- TEMPLATE ---` sections.
+- Field and node aliases: a field or a node is named by its id.
+- The codelist form `#codelist`: write `[...codelist]`.
+- A context override after anything but a context variable: `$context::BT-1-Lot` stays, `ND-Lot::BT-1-Lot` goes.
+- A rule without its `;`: each rule now ends with one, and the rules after the first one of a rule set may be indented.
 
-### TypeScript types
+### Colours and completions
 
-- The package ships its types (`dist/index.d.ts`): the kinds `efx` takes for each version, its options, the entries `efxSymbols` takes, `efxHighlightStyle` and `efxTheme`. A TypeScript compiler now refuses an unknown kind, `'rules'` with `{ version: 1 }`, an unknown version or a misspelt option.
-- A test compiles an application's use of the package against them.
+- The headings of template sections and the main section, and `PARAMETERS`, are coloured as keywords, and the name of a template section as a function.
+- The completions follow the toolkit's list for the new grammar.
+
+### Editing a text with errors
+
+- After an edit, the editor reuses its earlier tree only up to the first error in it. Before, a text with errors early on could be read differently after an edit than when read anew; a new test checks texts wrong throughout.

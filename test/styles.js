@@ -40,7 +40,7 @@ function efx2Reading(entry) {
   if (entry.template !== undefined) {
     return { text: entry.template, top: 'TemplateFile' };
   }
-  return { text: entry.text ?? `{ND-Root} \${${entry.input}}`, top: 'SingleExpression' };
+  return { text: entry.text ?? `WITH ND-Root COMPUTE ${entry.input}`, top: 'SingleExpression' };
 }
 
 /** The text and top of an entry of the EFX-1 test, read as that test reads it. */

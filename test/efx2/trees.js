@@ -20,7 +20,7 @@ function readingOf(entry) {
   if (entry.text !== undefined) {
     return { text: entry.text, top: 'SingleExpression', shown: String };
   }
-  return { text: `{ND-Root} \${${entry.input}}`, top: 'SingleExpression', shown: (tree) => String(tree.expression()) };
+  return { text: `WITH ND-Root COMPUTE ${entry.input}`, top: 'SingleExpression', shown: (tree) => String(tree.expression()) };
 }
 
 /** What is wrong with an entry, or nothing. */

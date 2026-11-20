@@ -24,8 +24,8 @@ const LANGUAGES = [
     tops: { validation: 'RulesFile', 'view-templates': 'TemplateFile' },
     names: Efx2TokenNames,
     pinned: {
-      validation: { files: 6, tokens: 121215 },
-      'view-templates': { files: 51, tokens: 349125 },
+      validation: { files: 7, tokens: 128456 },
+      'view-templates': { files: 51, tokens: 349023 },
     },
   },
   {
