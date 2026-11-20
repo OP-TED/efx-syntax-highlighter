@@ -1,0 +1,2 @@
+BT-01-notice is present
+  and every text:$lot in BT-137-Lot satisfies $lot like "LOT-[0-9]{4}"

@@ -1,0 +1,165 @@
+// The editor's grammar of EFX-1, the language of the eForms SDK 1: Efx.g4 and EfxLexer.g4 of the
+// SDK at the commit pinned in package.json (config.sdk1), for highlighting only.
+//
+// The tokens are ANTLR's: src/efx1/lexer.js runs ANTLR's lexer from its table over the whole text, as
+// ANTLR does (src/lexer/). Each token is named as its type in EfxLexer.g4, and the tokens the lexer
+// skips or hides are the skip tokens `space` and `Comment`.
+//
+// The rules are not Efx.g4's. Efx.g4 gives an expression a type (boolean, numeric, string, ...) and
+// lets ANTLR choose between the typed alternatives, which an LR parser cannot do; here an expression
+// has no type, and its alternatives are those of all the types together. It is meant to read every
+// text that Efx.g4 reads, with the same tokens (test/efx1/entries.js and the conformance test check
+// it), and it also reads some texts that Efx.g4 refuses for their types, such as `'a' + 1`.
+//
+// The operators group as in Efx.g4, which ranks them by the order of its alternatives: `or` before
+// `and`, so `a or b and c` is `(a or b) and c`. A comparison, `in`, `like`, `is` and the arithmetic
+// come first, as the alternatives that compare or compute values of other types are not
+// left-recursive in booleanExpression. Where Efx.g4 ranks an operator by the types of its operands,
+// an untyped grammar cannot follow it, and groups the operator as for other types. That is so for a
+// comparison or an `in` whose left side is a boolean, which Efx.g4 ranks below `or` and `and`
+// (`a and TRUE == FALSE` is `(a and TRUE) == FALSE`), and for arithmetic on durations: Efx.g4 ranks
+// their addition above their subtraction (`P1D - P2D + P3D` is `P1D - (P2D + P3D)`), and multiplies a
+// duration by a whole numeric expression (`P1D * 2 + 3` is `P1D * (2 + 3)`). test/efx1/entries.js
+// compares the grouping with ANTLR's and lists these cases.
+//
+// The three tops are those of an EFX-1 text: a template file, a single expression with its context
+// (singleExpression in Efx.g4), and an expression on its own, whose context is given outside the
+// text, read with the dialect `bare`, in which the lexer starts in EXPRESSION mode
+// (src/lexer/EditorLexer.js).
+
+@top TemplateFile { TemplateLine* }
+
+@top SingleExpression {
+  StartExpression (FieldId | NodeId) (Comma ParameterList)? EndExpression (ExpressionBlock | SelectorBlock)
+}
+
+@top BareExpression { expression }
+
+@dialects { bare }
+
+// ---- Template lines ----
+
+TemplateLine { (Tabs | Spaces | MixedIndent)? OutlineNumber? ContextDeclarationBlock Template CRLF }
+
+ContextDeclarationBlock { StartExpression expression EndExpression }
+
+Template { (Whitespace | FreeText | LabelBlock | ExpressionBlock)+ }
+
+LabelBlock {
+  StartLabel labelReference EndLabel |
+  ShorthandIndirectLabelReferenceFromContextField
+}
+
+labelReference {
+  (AssetType | ExpressionBlock) Pipe (LabelType | ExpressionBlock) Pipe AssetId |
+  (LabelType | ExpressionBlock) Pipe (BtId | FieldId) |
+  LabelType |
+  FieldId
+}
+
+AssetId { BtId | FieldId | OtherAssetId | AssetType | LabelType | ExpressionBlock }
+
+ExpressionBlock {
+  StartExpression expression EndExpression |
+  ShorthandFieldValueReferenceFromContextField
+}
+
+SelectorBlock { StartSelector expression EndExpression }
+
+ParameterList { ParameterDeclaration (Comma ParameterDeclaration)* }
+
+ParameterDeclaration { typeCast Variable }
+
+// ---- Expressions ----
+
+@precedence {
+  postfix @left,
+  cast @right,
+  times @left,
+  plus @left,
+  compare @left,
+  or @left,
+  and @left,
+  prefix @right
+}
+
+expression[@isGroup=Expression] {
+  ParenthesizedExpression { OpenParenthesis expression (Comma expression)* CloseParenthesis } |
+  PredicateExpression { expression !postfix OpenBracket expression CloseBracket } |
+  ContextOverrideExpression { expression !postfix ColonColon expression } |
+  AttributeReference { expression !postfix SlashAt Identifier } |
+  AbsoluteReference { Slash !cast expression } |
+  CastExpression { typeCast !cast expression } |
+  MultiplicativeExpression { expression !times (Star | Slash | Percent) expression } |
+  AdditiveExpression { expression !plus (Plus | Minus) expression } |
+  ComparisonExpression { expression !compare Comparison expression } |
+  InListCondition { expression !compare Not? In expression } |
+  LikePatternCondition { expression !compare Not? Like STRING } |
+  EmptinessCondition { expression !compare Is Not? Empty } |
+  PresenceCondition { expression !compare Is Not? Present } |
+  UniqueValueCondition { expression !compare Is Not? Unique In expression } |
+  LogicalAndCondition { expression !and And expression } |
+  LogicalOrCondition { expression !or Or expression } |
+  ConditionalExpression { If expression Then expression Else !prefix expression } |
+  QuantifiedExpression { (Every | Some) IteratorList Satisfies !prefix expression } |
+  IterationExpression { For IteratorList Return !prefix expression } |
+  FunctionCall { functionName OpenParenthesis (expression (Comma expression)*)? CloseParenthesis } |
+  ReferenceInOtherNotice { NoticeReference Slash !cast expression } |
+  AxisReference { Axis ColonColon FieldId } |
+  Literal |
+  FieldId |
+  NodeId |
+  Variable |
+  Identifier
+}
+
+NoticeReference { Notice OpenParenthesis expression CloseParenthesis }
+
+IteratorList { Iterator (Comma Iterator)* }
+
+Iterator { typeCast Variable In expression }
+
+typeCast {
+  BooleanTypeCast | NumericTypeCast | TextTypeCast | CodeTypeCast | DateTypeCast | TimeTypeCast | DurationTypeCast |
+  ContextTypeCast
+}
+
+functionName {
+  Not | CountFunction | SubstringFunction | StringFunction | NumberFunction | ContainsFunction | StartsWithFunction |
+  EndsWithFunction | StringLengthFunction | SumFunction | FormatNumberFunction | ConcatFunction | DateFunction |
+  TimeFunction | DayTimeDurationFunction | YearMonthDurationFunction | AddMeasure | SubtractMeasure |
+  DistinctValuesFunction | UnionFunction | IntersectFunction | ExceptFunction | SequenceEqualFunction
+}
+
+Literal {
+  STRING | UUIDV4 | INTEGER | DECIMAL | DATE | TIME | DayTimeDurationLiteral | YearMonthDurationLiteral |
+  True | False | Always | Never
+}
+
+// ---- Tokens ----
+
+@external tokens lexerModes from "./lexer.js" {
+  space, Comment,
+  MixedIndent, Tabs, Spaces, OutlineNumber,
+  CRLF, FreeText, ShorthandFieldValueReferenceFromContextField, ShorthandIndirectLabelReferenceFromContextField,
+  StartExpression, StartLabel, StartSelector, Whitespace,
+  Pipe, EndLabel, AssetType, LabelType, OtherAssetId,
+  OpenParenthesis, CloseParenthesis, OpenBracket, CloseBracket, ColonColon, EndExpression,
+  And, Or, Is, In, Like, Present, Empty, Unique, Every, Some, Satisfies, If, Then, Else, For, Return,
+  Always, Never, True, False, Notice,
+  BooleanTypeCast, NumericTypeCast, TextTypeCast, CodeTypeCast, DateTypeCast, TimeTypeCast, DurationTypeCast,
+  ContextTypeCast, Axis,
+  Not, CountFunction, SubstringFunction, StringFunction, NumberFunction, ContainsFunction, StartsWithFunction,
+  EndsWithFunction, StringLengthFunction, SumFunction, FormatNumberFunction, ConcatFunction, DateFunction,
+  TimeFunction, DayTimeDurationFunction, YearMonthDurationFunction, AddMeasure, SubtractMeasure,
+  DistinctValuesFunction, UnionFunction, IntersectFunction, ExceptFunction, SequenceEqualFunction,
+  BtId, FieldId, NodeId, Variable, DayTimeDurationLiteral, YearMonthDurationLiteral, Identifier,
+  INTEGER, DECIMAL, STRING, UUIDV4, DATE, TIME,
+  Comparison, Star, Slash, Percent, Plus, Minus, Comma, SlashAt
+}
+
+@skip { space | Comment }
+
+@detectDelim
+
+@external propSource efx1Highlighting from "./efx1Highlighting.js"

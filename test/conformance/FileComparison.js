@@ -1,8 +1,9 @@
-// One corpus file in the conformance test: the lexer's tokens against the editor's.
+// One corpus file in the conformance test: the lexer's tokens against the editor's. By default the
+// EFX-2 lexer, the EFX-2 parser and its table of token names; a language gives others.
 
 import { EditorTokens } from './EditorTokens.js';
 import { OracleTokens } from './OracleTokens.js';
-import { TokenNames } from './TokenNames.js';
+import { Efx2TokenNames } from './Efx2TokenNames.js';
 
 // The longest token text a difference shows.
 const SHOWN_LENGTH = 40;
@@ -14,12 +15,14 @@ export class FileComparison {
   #editor;
   // For each matched token of the lexer, by its index, the index of the editor's token it matches.
   #matches = new Map();
+  #names;
 
-  constructor(file, text, top) {
+  constructor(file, text, top, language = {}) {
     this.#file = file;
     this.#text = text;
-    this.#oracle = OracleTokens.of(text);
-    this.#editor = EditorTokens.of(text, top);
+    this.#names = language.names ?? Efx2TokenNames;
+    this.#oracle = OracleTokens.of(text, language.Lexer);
+    this.#editor = EditorTokens.of(text, top, language);
     this.#compare();
   }
 
@@ -68,7 +71,7 @@ export class FileComparison {
     });
     this.#oracle.forEach((token, index) => {
       const match = editorAt.get(token.start);
-      const name = TokenNames.editorNameOf(token.name);
+      const name = this.#names.editorNameOf(token.name);
       if (match !== undefined && name && this.#editor[match].name === name
         && this.#nextStart(this.#editor, match) === this.#nextStart(this.#oracle, index)) {
         this.#matches.set(index, match);

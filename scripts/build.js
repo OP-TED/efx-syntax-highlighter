@@ -1,37 +1,31 @@
+// Builds the package in dist/: src/ as it is, and for each version of EFX the parser of its grammar,
+// grammar/efx<version>.grammar, written to dist/efx<version>/parser.js beside the version's own
+// modules, which the parser loads (its lexer and highlight tags). dist/ is made anew each time. The
+// parsers are generated with the Lezer generator's own functions, in this process.
 
-// Build script to generate parser from grammar (ESM)
-import { execSync } from 'child_process';
-import path from 'path';
-import fs from 'fs';
-import { fileURLToPath } from 'url';
+import fs from 'node:fs';
+import path from 'node:path';
+import { fileURLToPath } from 'node:url';
+import { buildParserFile } from '@lezer/generator';
 
-const __dirname = path.dirname(fileURLToPath(import.meta.url));
-const grammarFile = path.join(__dirname, '../grammar/efx.grammar');
-const srcDir = path.join(__dirname, '../src');
-const distDir = path.join(__dirname, '../dist');
+const ROOT = fileURLToPath(new URL('../', import.meta.url));
+const SOURCE = path.join(ROOT, 'src');
+const DIST = path.join(ROOT, 'dist');
 
-try {
-  if (!fs.existsSync(distDir)) fs.mkdirSync(distDir);
-  execSync(`npx lezer-generator ${grammarFile} -o ${distDir}/efx-parser.js`, { stdio: 'inherit' });
-  console.log('Parser generated successfully in dist/.');
+const VERSIONS = ['efx1', 'efx2'];
 
-  // Copy all relevant JS files from src to dist (except parser)
-  // The parser loads efxHighlighting.js and the lexer/ folder, which loads generated/words.js, from
-  // dist/; the language loads the completion/ folder, which loads generated/completions.js. A file
-  // missing from src/ fails the build.
-  const filesToCopy = ['efxLanguage.js', 'efxHighlighting.js', 'efxSymbols.js', 'efxTheme.js', 'index.js',
-    'generated/words.js', 'generated/completions.js'];
-  for (const file of filesToCopy) {
-    const distFile = path.join(distDir, file);
-    fs.mkdirSync(path.dirname(distFile), { recursive: true });
-    fs.copyFileSync(path.join(srcDir, file), distFile);
-  }
-  for (const folder of ['lexer', 'completion']) {
-    fs.rmSync(path.join(distDir, folder), { recursive: true, force: true });
-    fs.cpSync(path.join(srcDir, folder), path.join(distDir, folder), { recursive: true });
-  }
-  console.log('Copied source files to dist/.');
-} catch (err) {
-  console.error('Build failed:', err);
-  process.exit(1);
+fs.rmSync(DIST, { recursive: true, force: true });
+fs.cpSync(SOURCE, DIST, { recursive: true });
+for (const version of VERSIONS) {
+  const grammarFile = path.join(ROOT, 'grammar', `${version}.grammar`);
+  const { parser, terms } = buildParserFile(fs.readFileSync(grammarFile, 'utf8'), {
+    fileName: path.relative(ROOT, grammarFile),
+    moduleStyle: 'es',
+    warn: (message) => {
+      throw new Error(`${path.relative(ROOT, grammarFile)}: ${message}`);
+    },
+  });
+  fs.writeFileSync(path.join(DIST, version, 'parser.js'), parser);
+  fs.writeFileSync(path.join(DIST, version, 'parser.terms.js'), terms);
 }
+console.log(`Built dist/: src/ and the parsers of ${VERSIONS.join(' and ')}.`);

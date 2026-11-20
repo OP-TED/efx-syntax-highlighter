@@ -1,16 +1,15 @@
-// The highlighting the editor gives a text, as a list of runs: each run of text with the same
+// The highlighting an editor's parser gives a text, as a list of runs: each run of text with the same
 // highlight tags, one per line, as `line:column`, the tags and the text, separated by tabs. Text
 // with no tag is left out.
 
 import { highlightTree } from '@lezer/highlight';
-import { parser } from '../../dist/efx-parser.js';
 
 // Names a run by its tags, as Lezer writes them (`function(keyword)`).
 const TAG_NAMES = { style: (tags) => tags.map(String).join(' ') };
 
 export class StyleDump {
-  /** The runs of a text read from a top. */
-  static of(text, top) {
+  /** The runs of a text read by a parser from a top. */
+  static of(parser, text, top) {
     const tree = parser.configure({ top }).parse(text);
     const lineStarts = StyleDump.#lineStarts(text);
     const runs = [];

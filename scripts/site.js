@@ -1,7 +1,8 @@
 // Gathers the demo page and what it loads into site/, the folder the Pages workflow publishes: the page
 // in demo/, the build in dist/, the files its options show and the packages its import map names. Each
 // is copied to its place in the repository, so that the page's relative paths hold. Run after
-// `npm run build`; a file missing from the repository fails the script.
+// `npm run sync`, which writes the files in test/ that the options show, and `npm run build`; a file
+// missing from the repository fails the script.
 
 import fs from 'node:fs';
 import path from 'node:path';

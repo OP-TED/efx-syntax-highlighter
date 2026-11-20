@@ -1,6 +1,7 @@
-// Serves the repository for the demo page, demo/index.html, which loads the build in dist/, the
-// samples in test/ and CodeMirror from node_modules/: `npm run build`, then `npm run demo`, then open
-// the address it prints. Only files inside the repository are served.
+// Serves the repository for the demo page, demo/index.html, which loads the build in dist/, its
+// samples in demo/ and test/ and CodeMirror from node_modules/: `npm run sync` (which writes the
+// samples in test/), `npm run build`, then `npm run demo`, then open the address it prints. Only
+// files inside the repository are served.
 
 import fs from 'node:fs/promises';
 import http from 'node:http';
