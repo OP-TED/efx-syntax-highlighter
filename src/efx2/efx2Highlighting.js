@@ -9,7 +9,8 @@ export const EFX2_STYLES = {
   "Let With EVERY When Otherwise Display Invoke Index By Compute Select": t.keyword,
   "Endpoint AT Call Api On OnErrorClause/Error": t.keyword,
   "Assert Report OtherwiseAssert OtherwiseReport As FOR IN Scope": t.keyword,
-  "IncludeDirective SummarySectionHeader NavigationSectionHeader StageHeaderStart StageHeaderEnd": t.keyword,
+  "IncludeDirective MainSectionHeader SummarySectionHeader NavigationSectionHeader StageHeaderStart StageHeaderEnd": t.keyword,
+  "TemplateSectionHeaderStart TemplateSectionHeaderEnd Parameters": t.keyword,
 
   // The words of expressions.
   "And Or Not Is In Like Present Empty Unique Has No Duplicates Every Some Satisfies If Then Else For Return": t.className,
@@ -22,10 +23,10 @@ export const EFX2_STYLES = {
   "Error Warning Info Warn Reject Any AnyNoticeTypes/Star Pre Post": t.className,
 
   // Types, with the colon after them in a declaration.
-  "Text Number Indicator Date Time Duration ContextType Template Dynamic TypeDeclaration/Star": t.typeName,
+  "Text Number Indicator Date Time Duration ContextType Dynamic TypeDeclaration/Star": t.typeName,
   "TypedVariableInitializer/Colon DynamicVariableInitializer/Colon ContextVariableInitializer/Colon": t.typeName,
   "ParameterDeclaration/Colon ValueIterator/Colon ContextIterator/Colon": t.typeName,
-  "FunctionDeclaration/Colon DynamicFunctionDeclaration/Colon TemplateDefinition/Colon": t.typeName,
+  "FunctionDeclaration/Colon DynamicFunctionDeclaration/Colon": t.typeName,
 
   // The built-in functions.
   "BuiltInFunction/Not BuiltInFunction/Indicator BuiltInFunction/Empty BuiltInFunction/Number": t.function(t.keyword),
@@ -50,7 +51,7 @@ export const EFX2_STYLES = {
   "IncludePath OutlineNumber": t.literal,
 
   // The data of a notice: fields, nodes and attributes.
-  "FieldId NodeId BtId SimpleFieldReference/Identifier FieldMention/Identifier SingleExpression/Identifier": t.propertyName,
+  "FieldId NodeId BtId": t.propertyName,
   "AttributeReference/AtPrefix AttributeReference/Identifier": t.propertyName,
   "AttributeExpression/AtPrefix AttributeExpression/Identifier": t.propertyName,
 
@@ -62,11 +63,11 @@ export const EFX2_STYLES = {
 
   // Functions and templates that a file declares.
   "FunctionPrefix FunctionInvocation/Identifier FunctionDeclaration/Identifier": t.function(t.name),
-  "DynamicFunctionDeclaration/Identifier TemplateDefinition/Identifier InvokeTemplate/Identifier": t.function(t.name),
+  "DynamicFunctionDeclaration/Identifier TemplateSection/Identifier InvokeTemplate/Identifier": t.function(t.name),
 
   // Names of assets: asset ids in a label, codelists, flags, rules and stages.
   "OtherAssetId AssetId/AssetType AssetId/LabelType RuleIdentifier StageIdentifier": t.special(t.name),
-  "CodelistReference/HashPrefix CodelistReference/Identifier Flag/HashPrefix Flag/Identifier": t.special(t.name),
+  "CodelistReference/Identifier Flag/HashPrefix Flag/Identifier": t.special(t.name),
 
   // Template text.
   "FreeText OtherEscapeSequence CharacterReference NewLine": t.special(t.string),
@@ -74,7 +75,7 @@ export const EFX2_STYLES = {
   "Assignment Comparison Plus Minus Star Slash Percent ColonColon": t.operator,
   "OpenParenthesis CloseParenthesis OpenBracket CloseBracket Pipe Colon Ellipsis Comma Semicolon": t.punctuation,
   "AttributeReference/Slash AttributeExpression/Slash": t.punctuation,
-  "StartContextBlock StartExpressionBlock StartLabelBlock StartHyperlinkBlock StartSelectorBlock EndBlock": t.bracket,
+  "StartExpressionBlock StartLabelBlock StartHyperlinkBlock EndBlock": t.bracket,
   Comment: t.lineComment,
   Identifier: t.name,
 };

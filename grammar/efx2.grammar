@@ -4,7 +4,7 @@
 // A rule is a node named as in Efx.g4 with a capital first letter. A rule whose alternatives are
 // labelled is not a node: its alternatives are, as in ANTLR's parse tree. Where a node would only
 // repeat a token's name, the token stands for it: a built-in function's alternative (its token
-// names the call) and a rule named like a token (template, assetType, stringLiteral, ...).
+// names the call) and a rule named like a token (assetType, stringLiteral, ...).
 //
 // The three tops are the three start rules of Efx.g4: a template file, a rules file and a single
 // expression. Each file is read with the top of its kind. A fourth top reads an expression on its own
@@ -12,7 +12,7 @@
 
 // The first top, the editor's default; its rules follow in the order of Efx.g4.
 @top TemplateFile {
-  includeDirective* GlobalDeclaration* TemplateDeclaration* (TemplateLine* | includeDirective) OtherSections?
+  includeDirective* GlobalDeclaration* TemplateBody OtherSections?
 }
 
 // A rules file, the second top (rulesFile in Efx.g4); its rules follow the declarations. A file that
@@ -24,8 +24,7 @@
 
 // A single expression with its context, as the toolkit reads one (singleExpression in Efx.g4).
 @top SingleExpression {
-  StartContextBlock (FieldId | NodeId | Identifier) (Comma ParameterList)? EndBlock (ExpressionBlock | SelectorBlock) |
-  With (FieldId | NodeId | Identifier) (Comma ParameterList)? (Compute expression | Select Selection)
+  With (FieldId | NodeId) (Comma ParameterList)? (Compute expression | Select Selection) Semicolon?
 }
 
 // An expression on its own, whose context is given outside the text, as an application keeps the
@@ -47,8 +46,6 @@ StandardExpressionBlock {
   Let expression Semicolon
   | StartExpressionBlock expression EndBlock
 }
-
-SelectorBlock { StartSelectorBlock Selection EndBlock }
 
 Selection { fieldContext | nodeContext | AttributeReference }
 
@@ -94,8 +91,9 @@ expression[@isGroup=Expression] {
   PredicateOrLookupExpression { expression !postfix OpenBracket expression CloseBracket } |
   IndexedExpression { expression !postfix OpenBracket At expression CloseBracket } |
   AttributeExpression { expression !postfix AttributeSlash AtPrefix Identifier } |
-  FieldFromContextExpression { expression !postfix ColonColon LinkedFieldReference } |
-  NodeFromContextExpression { expression !postfix ColonColon SimpleNodeReference } |
+  // Only a context variable can stand before the two colons of a context override.
+  FieldFromContextExpression { VariableReference ColonColon LinkedFieldReference } |
+  NodeFromContextExpression { VariableReference ColonColon SimpleNodeReference } |
   // After a field, a colon can start a property of the field or of its value; the parser tries
   // both (~linkColon, ~fieldColon) and keeps the one the next word fits.
   RawValueExpression { expression !postfix ~linkColon Colon RawValue } |
@@ -146,8 +144,8 @@ Reference { FieldReference | NodeReference | VariableReference | FunctionInvocat
 FieldReference { AbsoluteFieldReference | LinkedFieldReference }
 AbsoluteFieldReference { Slash LinkedFieldReference }
 LinkedFieldReference { SimpleFieldReference ~linkColon (Colon LinkedFieldProperty)? }
-SimpleFieldReference { (FieldId | Identifier) ~fieldColon }
-FieldMention { (FieldId | Identifier) ~fieldColon (Colon LinkedFieldProperty)? }
+SimpleFieldReference { FieldId ~fieldColon }
+FieldMention { FieldId ~fieldColon (Colon LinkedFieldProperty)? }
 LinkedFieldProperty { PublicationDate | JustificationCode | JustificationDescription }
 
 NodeReference { AbsoluteNodeReference | SimpleNodeReference }
@@ -170,10 +168,7 @@ fieldProperty {
   FieldPrivacyCodeProperty { FieldMention Colon PrivacyCode }
 }
 
-CodelistReference {
-  OpenBracket Ellipsis Identifier CloseBracket
-  | HashPrefix Identifier
-}
+CodelistReference { OpenBracket Ellipsis Identifier CloseBracket }
 
 BuiltInFunction {
   booleanFunction | numericFunction | stringFunction | dateFunction | timeFunction | durationFunction | sequenceFunction
@@ -267,8 +262,8 @@ ValidationStage { StageHeaderStart StageIdentifier StageHeaderEnd StageVariableD
 StageVariableDeclaration { VariableDeclaration }
 
 RuleSet {
-  WithClause Rules Semicolon? |
-  WithClause ConditionalRules FallbackRule Semicolon?
+  WithClause Rules |
+  WithClause ConditionalRules FallbackRule
 }
 
 WithClause { With EVERY? ContextDeclarationBlock }
@@ -280,15 +275,16 @@ Rules {
   SimpleRule (SimpleRule | ConditionalRule)*
 }
 
-ConditionalRules { conditionalRuleRun }
+ConditionalRules { conditionalRuleRun ~ruleIndent }
 
 conditionalRuleRun { ConditionalRule+ }
 
-SimpleRule { (AssertClause | ReportClause) AsClause ForClause InClause ScopeClause? }
+// Each rule ends with a semicolon; the rules after the first one of a rule set may be indented.
+SimpleRule { (~ruleIndent Indentation)? (AssertClause | ReportClause) AsClause ForClause InClause ScopeClause? Semicolon }
 
-ConditionalRule { WhenClause (AssertClause | ReportClause) AsClause ForClause InClause ScopeClause? }
+ConditionalRule { (~ruleIndent Indentation)? WhenClause (AssertClause | ReportClause) AsClause ForClause InClause ScopeClause? Semicolon }
 
-FallbackRule { (OtherwiseAssertClause | OtherwiseReportClause) AsClause ForClause InClause ScopeClause? }
+FallbackRule { (~ruleIndent Indentation)? (OtherwiseAssertClause | OtherwiseReportClause) AsClause ForClause InClause ScopeClause? Semicolon }
 
 WhenClause { When expression }
 
@@ -327,6 +323,20 @@ NoticeType { IntegerLiteral | Identifier }
 
 // ---- Template files ----
 
+// The body of a template file: template sections, each declaring a callable template, then the main
+// section with its heading; or the main section alone, with or without its heading.
+TemplateBody { TemplateSection+ MainSectionWithHeader | MainSection }
+
+TemplateSection {
+  TemplateSectionHeaderStart Identifier TemplateSectionHeaderEnd ParametersDeclaration? TemplateLine+
+}
+
+ParametersDeclaration { Parameters ParameterList Semicolon }
+
+MainSectionWithHeader { MainSectionHeader MainSectionLines }
+MainSection { MainSectionHeader? MainSectionLines }
+MainSectionLines { TemplateLine* | includeDirective }
+
 OtherSections { NavigationSection SummarySection? | SummarySection NavigationSection? }
 
 SummarySection { SummarySectionHeader (TemplateLine* | includeDirective) }
@@ -340,15 +350,12 @@ DictionaryIndexClause { Index fieldContext }
 DictionaryKeyClause { By expression }
 
 TemplateLine {
-  Indentation? OutlineNumber? (With ContextDeclarationBlock)? (ChooseTemplate | DisplayTemplate | InvokeTemplate) Semicolon |
-  Indentation? OutlineNumber? StartContextBlock ContextDeclarationBlock EndBlock template CRLF
+  Indentation? OutlineNumber? (With ContextDeclarationBlock)? (ChooseTemplate | DisplayTemplate | InvokeTemplate) Semicolon
 }
-
-TemplateDeclaration { Indentation? Let TemplateDefinition (ChooseTemplate | DisplayTemplate | InvokeTemplate) Semicolon }
 
 Indentation { Tabs | Spaces | MixedIndent }
 
-template { templateFragment }
+Template { templateFragment }
 
 templateFragment {
   SecondaryTemplate { LineBreak templateFragment? } |
@@ -393,10 +400,8 @@ AssetId { BtId | FieldId | otherAssetId | ExpressionBlock }
 otherAssetId { OtherAssetId | AssetType | LabelType }
 Pluraliser { ExpressionBlock }
 
-TemplateDefinition { Template Colon Identifier OpenParenthesis ParameterList? CloseParenthesis }
-
 ChooseTemplate { WhenBlock+ OtherwiseBlock? }
-DisplayTemplate { Display template }
+DisplayTemplate { Display Template }
 InvokeTemplate { Invoke Identifier OpenParenthesis ArgumentList? CloseParenthesis }
 
 WhenBlock { WhenDisplayTemplate | WhenInvokeTemplate }
@@ -404,7 +409,7 @@ WhenDisplayTemplate { When expression DisplayTemplate }
 WhenInvokeTemplate { When expression InvokeTemplate }
 
 OtherwiseBlock { OtherwiseDisplayTemplate | OtherwiseInvokeTemplate }
-OtherwiseDisplayTemplate { Otherwise Display? template }
+OtherwiseDisplayTemplate { Otherwise Display? Template }
 OtherwiseInvokeTemplate { Otherwise InvokeTemplate }
 
 FunctionDeclaration {
@@ -423,7 +428,7 @@ FunctionDeclaration {
 @external tokens lexerModes from "./lexer.js" {
   space, Comment,
   FreeText, AssetType, LabelType, OtherAssetId, Semicolon, FormatShort, FormatMedium, FormatLong, FormatNoUnit,
-  FormatNoFormatting, With, Compute, Select, Let, When, Otherwise, Display, Invoke, Index, By, Template,
+  FormatNoFormatting, With, Compute, Select, Let, When, Otherwise, Display, Invoke, Index, By,
   Dynamic, And, Or, Is, In, Like, Present, Empty, Unique, Has, No, Duplicates, Every, Some, Satisfies, If,
   Then, Else, For, Return, Distinct, Always, Never, True, False, At, AT, EVERY, Not, Text, Number, Indicator,
   Date, Time, Duration, ContextType, CountFunction, SubstringFunction, SubstringBeforeFunction,
@@ -442,9 +447,10 @@ FunctionDeclaration {
   Api, On, Warn, Reject, Error, Warning, Info, Assert, Report, OtherwiseAssert, OtherwiseReport, As, FOR, IN,
   Any, Scope, IncludeDirective, PublicationDate, JustificationCode, JustificationDescription, PrivacyCode,
   WasWithheld, IsWithheld, IsWithholdable, IsDisclosed, IsMasked, RawValue, PreferredLanguage,
-  PreferredLanguageText, StartContextBlock, IncludePath, MixedIndent, Tabs, Spaces, OutlineNumber,
-  SummarySectionHeader, NavigationSectionHeader, StageHeaderStart, StageIdentifier, StageHeaderEnd, NewLine,
-  CharacterReference, CRLF, ShorthandFieldValueReferenceFromContextField, StartSelectorBlock, StartLabelBlock,
+  PreferredLanguageText, IncludePath, MixedIndent, Tabs, Spaces, OutlineNumber,
+  MainSectionHeader, SummarySectionHeader, NavigationSectionHeader, TemplateSectionHeaderStart, TemplateSectionHeaderEnd,
+  Parameters, StageHeaderStart, StageIdentifier, StageHeaderEnd, NewLine,
+  CharacterReference, ShorthandFieldValueReferenceFromContextField, StartLabelBlock,
   StartHyperlinkBlock, Whitespace, OtherEscapeSequence, FormatDecimals, Pipe, OpenParenthesis,
   CloseParenthesis, OpenBracket, CloseBracket, ColonColon, StartExpressionBlock, EndBlock,
   DayTimeDurationLiteral, YearMonthDurationLiteral, BtId, FieldId, NodeId, RuleIdentifier, Pre, Post,

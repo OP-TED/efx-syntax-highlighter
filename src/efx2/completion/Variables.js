@@ -7,7 +7,7 @@
 import { syntaxTree } from '@codemirror/language';
 
 const ITERATIONS = ['QuantifiedExpression', 'IterationExpression'];
-const WITH_PARAMETERS = ['FunctionDeclaration', 'DynamicFunctionDeclaration', 'TemplateDeclaration', 'SingleExpression'];
+const WITH_PARAMETERS = ['FunctionDeclaration', 'DynamicFunctionDeclaration', 'TemplateSection', 'SingleExpression'];
 
 // The nodes that declare a variable, each with the nodes where its variable is used; none: everywhere.
 const DECLARATIONS = new Map([

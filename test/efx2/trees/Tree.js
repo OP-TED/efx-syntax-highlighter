@@ -10,10 +10,11 @@ export class Tree {
     this.#children = children;
   }
 
-  /** The tree of the expression in a single expression's block: `{ND-Root} ${expression}`. */
+  /** The tree of the expression of a single expression: `WITH ND-Root COMPUTE expression`. */
   expression() {
-    const block = this.#find('StandardExpressionBlock');
-    return block?.#children[1];
+    const children = this.#find('SingleExpression')?.#children ?? [];
+    const compute = children.findIndex((child) => child.#name === 'Compute');
+    return compute < 0 ? undefined : children[compute + 1];
   }
 
   toString() {

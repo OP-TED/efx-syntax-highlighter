@@ -14,13 +14,13 @@ const EDITS = 200;
 
 // The pieces put in: some keep a text right, some break it, as typing does.
 const PIECES = {
-  'pieces that keep it right': ['x', ' ', 'BT-1-Lot', '1', '\n{ND-Root} more text\n', ' and BT-2-Lot is present', '-'],
+  'pieces that keep it right': ['x', ' ', 'BT-1-Lot', '1', '\nWITH ND-Root DISPLAY more text;\n', ' and BT-2-Lot is present', '-'],
   'pieces that break it': ['${', '}', '//', '"', ';', '#{', '|', 'DISPLAY ', 'WITH ', '\n', '(', ')', '/', '@'],
 };
 
 const VERSIONS = [
-  { name: 'EFX-2', version: 2, sample: 'efx2/sample.efx' },
-  { name: 'EFX-1', version: 1, sample: 'efx1/sample.efx' },
+  { name: 'EFX-2', version: 2, sample: 'efx2/sample.efx', broken: (text) => text.replaceAll(';', '') },
+  { name: 'EFX-1', version: 1, sample: 'efx1/sample.efx', broken: (text) => text.replaceAll('}', '') },
 ];
 
 /** A generator of numbers at random, always the same ones, so that a failure can be read again. */
@@ -76,6 +76,29 @@ for (const { name, version, sample } of VERSIONS) {
     }
   }
   console.log(`Incremental: ${name}, ${EDITS - differing} of ${EDITS} pairs of edits made before parsing again parse as from scratch.`);
+}
+
+// A text wrong throughout, as a text being typed can be: each version's sample without the character
+// that ends its lines or blocks. The parser recovers from each error, and the tree after an edit
+// must still be the one a parse from scratch makes.
+for (const { name, version, sample, broken } of VERSIONS) {
+  const { parser } = efx('template', { version }).language;
+  const original = broken(fs.readFileSync(new URL(sample, import.meta.url), 'utf8'));
+  const earlier = TreeFragment.addTree(parser.parse(original));
+  const random = randomNumbers(20261122);
+  const pieces = Object.values(PIECES).flat();
+  let differing = 0;
+  for (let edit = 0; edit < EDITS; edit += 1) {
+    const at = random(original.length);
+    const piece = pieces[random(pieces.length)];
+    const text = original.slice(0, at) + piece + original.slice(at);
+    const change = { fromA: at, toA: at, fromB: at, toB: at + piece.length };
+    if (parser.parse(text, TreeFragment.applyChanges(earlier, [change])).toString() !== parser.parse(text).toString()) {
+      differing += 1;
+      failures.push(`${name}, wrong throughout, ${JSON.stringify(piece)} put in at ${at}: the tree differs from a parse from scratch`);
+    }
+  }
+  console.log(`Incremental: ${name}, ${EDITS - differing} of ${EDITS} edits of a text wrong throughout parse as from scratch.`);
 }
 
 failures.slice(0, 10).forEach((failure) => console.error(`  ${failure}`));

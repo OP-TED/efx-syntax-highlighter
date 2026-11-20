@@ -125,24 +125,24 @@ const CHECKS = {
     assert.equal(expression('BT-01-notice:raw‸').option('rawValue').type, 'property');
   },
   'a label block offers asset types, label types and field ids': () => {
-    const labels = template('1 {ND-Root} #{‸').labels();
+    const labels = template('1 WITH ND-Root DISPLAY #{‸').labels();
     for (const label of ['field', 'auxiliary', 'name', 'when-true', 'BT-01-notice']) {
       assert.ok(labels.includes(label), label);
     }
     assert.ok(!labels.includes('ND-Root'));
-    assert.deepEqual(template('1 {ND-Root} #{field|‸').labels().sort(),
+    assert.deepEqual(template('1 WITH ND-Root DISPLAY #{field|‸').labels().sort(),
       ['description', 'hint', 'name', 'template', 'text', 'when-false', 'when-true']);
   },
   'an id is shown with its type, if it is given one, or else with what it is': () => {
     assert.deepEqual(expression('‸').option('BT-01-notice'), { label: 'BT-01-notice', type: 'constant', detail: 'code' });
     assert.deepEqual(expression('‸').option('BT-26(m)-Procedure'), { label: 'BT-26(m)-Procedure', type: 'constant', detail: 'field' });
-    assert.deepEqual(template('1 {‸').option('ND-Lot'), { label: 'ND-Lot', type: 'namespace', detail: 'node' });
+    assert.deepEqual(template('1 WITH ‸').option('ND-Lot'), { label: 'ND-Lot', type: 'namespace', detail: 'node' });
     // The ids are kept as the application gave them, as in 0.4.0.
     assert.deepEqual(Editor.holding('expression', '').facet(efxSymbols).fields,
       [{ id: 'BT-01-notice', type: 'code' }, 'BT-26(m)-Procedure']);
   },
   'after the pipe of an expression block, the format options': () => {
-    assert.deepEqual(template('1 {ND-Root} ${BT-01-notice | ‸').labels().sort(), ['long', 'medium', 'no-formatting', 'no-unit', 'short']);
+    assert.deepEqual(template('1 WITH ND-Root DISPLAY ${BT-01-notice | ‸').labels().sort(), ['long', 'medium', 'no-formatting', 'no-unit', 'short']);
   },
   'a template line starts with its words': () => {
     assert.deepEqual(template('‸').labels().sort(),
@@ -165,16 +165,23 @@ const CHECKS = {
   },
   'the variables a place can use': () => {
     const variables = (editor) => editor.labels().filter((label) => label.startsWith('$'));
-    assert.deepEqual(variables(template('1 {ND-Root} ${for text:$x in BT-01-notice return $‸')), ['$x']);
-    assert.deepEqual(variables(template('1 {ND-Root} ${for text:$x in BT-01-notice return 1} ${$‸')), []);
-    assert.deepEqual(variables(template('LET text:$t = 1;\n1 {ND-Root} ${$‸')), ['$t']);
-    assert.deepEqual(variables(Editor.at('expression', '{ND-Root, text:$p} ${$‸')), ['$p']);
+    assert.deepEqual(variables(template('1 WITH ND-Root DISPLAY ${for text:$x in BT-01-notice return $‸')), ['$x']);
+    assert.deepEqual(variables(template('1 WITH ND-Root DISPLAY ${for text:$x in BT-01-notice return 1} ${$‸')), []);
+    assert.deepEqual(variables(template('LET text:$t = 1;\n1 WITH ND-Root DISPLAY ${$‸')), ['$t']);
+    assert.deepEqual(variables(Editor.at('expression', 'WITH ND-Root, text:$p COMPUTE $‸')), ['$p']);
+    // A template section's parameters are usable in its lines, not in another section or the main one.
+    const sections = '--- TEMPLATE greet ---\nPARAMETERS text:$person;\nDISPLAY ${$person};\n'
+      + '--- TEMPLATE other ---\nDISPLAY ${$x};\n--- MAIN ---\nDISPLAY ${$y};\n';
+    const at = (text) => Editor.at('template', sections.replace(text, `${text.slice(0, -2)}‸}`));
+    assert.deepEqual(variables(at('${$person}')), ['$person']);
+    assert.deepEqual(variables(at('${$x}')), []);
+    assert.deepEqual(variables(at('${$y}')), []);
   },
   'after WITH, the node ids and the field ids': () => {
     assert.deepEqual(Editor.at('expression', 'WITH ‸').labels().sort(), ['BT-01-notice', 'BT-26(m)-Procedure', 'ND-Lot', 'ND-Root']);
   },
   'a field id with its part in parentheses is one word': () => {
-    assert.equal(template('1 {ND-Root} ${BT-26(m‸').offered().from, '1 {ND-Root} ${'.length);
+    assert.equal(template('1 WITH ND-Root DISPLAY ${BT-26(m‸').offered().from, '1 WITH ND-Root DISPLAY ${'.length);
   },
   'a number or a minus starts no word': () => {
     assert.equal(expression('12‸').offered(), null);
@@ -187,7 +194,7 @@ const CHECKS = {
   },
   'nothing is offered in a comment or a string, or after an error': () => {
     assert.equal(template('// a co‸').offered(true), null);
-    assert.equal(template("1 {ND-Root} ${'co‸'}").offered(true), null);
+    assert.equal(template("1 WITH ND-Root DISPLAY ${'co‸'}").offered(true), null);
     assert.deepEqual(rules('BT-01-notice is is ‸').labels(), []);
   },
   'every item of the completion list is offered somewhere': () => {
@@ -203,7 +210,7 @@ const CHECKS = {
       ...wordsIn('rules', 'corpus/validation/stage-4m.efx')];
     const missing = found.filter(({ word, editor }) => !editor.labels().includes(word)).map(({ word, editor }) => `${word} at ${editor.pos - 1}`);
     assert.deepEqual(missing, []);
-    assert.equal(found.length, 833);
+    assert.equal(found.length, 980);
   },
 };
 
