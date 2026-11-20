@@ -44,10 +44,10 @@ export const EFX2_STYLES = {
   "SubsequenceFunction IndexOfFunction PreferredLanguageFunction PreferredLanguageTextFunction": t.function(t.keyword),
   "SortFunction ReverseFunction SplitFunction": t.function(t.keyword),
 
-  // Literals, and the notice types of a rule and the path of an include.
+  // Literals, the notice types of a rule, the path of an include and the outline numbers of a template.
   "StringLiteral UuidV4Literal IntegerLiteral DecimalLiteral True False Always Never DateLiteral TimeLiteral": t.literal,
   "DayTimeDurationLiteral YearMonthDurationLiteral NumericLiteral/Minus NoticeType/Identifier NoticeTypeRange/Minus": t.literal,
-  IncludePath: t.literal,
+  "IncludePath OutlineNumber": t.literal,
 
   // The data of a notice: fields, nodes and attributes.
   "FieldId NodeId BtId SimpleFieldReference/Identifier FieldMention/Identifier SingleExpression/Identifier": t.propertyName,
@@ -72,7 +72,7 @@ export const EFX2_STYLES = {
   "FreeText OtherEscapeSequence CharacterReference NewLine": t.special(t.string),
 
   "Assignment Comparison Plus Minus Star Slash Percent ColonColon": t.operator,
-  "OpenParenthesis CloseParenthesis OpenBracket CloseBracket Pipe Colon Ellipsis": t.punctuation,
+  "OpenParenthesis CloseParenthesis OpenBracket CloseBracket Pipe Colon Ellipsis Comma Semicolon": t.punctuation,
   "AttributeReference/Slash AttributeExpression/Slash": t.punctuation,
   "StartContextBlock StartExpressionBlock StartLabelBlock StartHyperlinkBlock StartSelectorBlock EndBlock": t.bracket,
   Comment: t.lineComment,

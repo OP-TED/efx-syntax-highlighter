@@ -34,13 +34,15 @@ const view = new EditorView({
 });
 ```
 
-The package offers four things:
+The package offers five things:
 
 - **`efx(kind)`** gives an editor what it needs to read one kind of EFX-2 text: its parser, the EFX colours and the completions. The kind is `'template'` for a template file, `'rules'` for a rules file, `'expression'` for a single expression with its context, such as `WITH ND-Root COMPUTE BT-01-notice is present`, or `'bare-expression'` for an expression with no context in the text, such as `BT-01-notice is present`, read as the expression of `WITH … COMPUTE`. Any other kind is refused with a `RangeError`. `efx(kind).language` is the CodeMirror language, for an application that needs it on its own.
 - **`efx(kind, { version: 1 })`** does the same for EFX-1 text, without completions. The kinds are `'template'`, `'expression'`, such as `{ND-Root} ${BT-01-notice is present}`, and `'bare-expression'`; EFX-1 has no rules files. Any other kind or version is refused with a `RangeError`.
-- **`efxSymbols`** gives the editor the field and node ids it offers: `efxSymbols.of({ fields, nodes })`, each a list of ids, for example those of the SDK's `fields.json`. The ids of several such extensions add up.
+- **`efxSymbols`** gives the editor the field and node ids it offers: `efxSymbols.of({ fields, nodes })`, each a list of ids, for example those of the SDK's `fields.json`. An entry can also be an id with its type, such as `{ id: 'BT-01-notice', type: 'code' }`; the editor shows the type beside the id, and "field" or "node" beside an id without one. The ids of several such extensions add up.
 - **`efxHighlightStyle`** is the EFX colours. `efx(kind)` already uses them as the editor's default colours; an application that gives its editor its own colours with `syntaxHighlighting(...)` replaces them.
 - **`efxTheme`** is a light look for the editor itself (white background, black cursor). Add it if you want it.
+
+The package ships its TypeScript types, so that an application written in TypeScript has its calls checked.
 
 ### Completions
 
