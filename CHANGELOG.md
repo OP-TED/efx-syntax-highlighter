@@ -1,4 +1,4 @@
-# EFX Syntax Highlighter 0.3.0 Release Notes
+# EFX Syntax Highlighter 0.4.0 Release Notes
 
 _The EFX Syntax Highlighter gives [CodeMirror 6](https://codemirror.net/) editors syntax highlighting and completions for [EFX](https://docs.ted.europa.eu/eforms/latest/efx), the expression and template language of the eForms SDK._
 
@@ -6,48 +6,38 @@ _The EFX Syntax Highlighter gives [CodeMirror 6](https://codemirror.net/) editor
 
 ## In this release
 
-This release brings the highlighter to EFX-2, the language of the eForms SDK 2, and adds completions. It changes how an application sets up its editor: see "Changes for applications" below.
+This release adds EFX-1, the language of the eForms SDK 1, and a fourth kind of text: an expression on its own, whose context the application keeps apart. Both versions now read their text with the SDK's own lexer. An application that sets up its editor as for 0.3.0 needs no change.
 
-### EFX-2 language support
+### Bare expressions
 
-- The grammar is rewritten as a translation of the SDK's ANTLR grammar (`efx-grammar/Efx.g4` and `EfxLexer.g4`), rule for rule, at the SDK commit pinned in `package.json`.
-- It reads the three kinds of EFX text, each from a top of its own: template files, rules files and single expressions.
-- As the SDK's grammar requires, statement words (`LET`, `WITH`, `DISPLAY`, `ASSERT`, `STAGE` and the others) are written in upper case, as are `TRUE`, `FALSE`, `ALWAYS` and `NEVER`. The other words of expressions (`is`, `in`, `every`, `at` and the others) are written in lower case, and the field properties as they are listed (`rawValue`, `publicationDate`). A statement word in lower case is read as a name (`LET template:call()`), so `with` at the start of a template line shows as an error.
-- The words the lexer reserves are generated from the SDK's lexer by `npm run sync`, no longer typed into the grammar.
-- A conformance test compares the editor's tokens with those of the ANTLR lexer, generated for JavaScript, over the SDK's view templates and rules files. They are equal in 51 of 51 view templates and 6 of 7 rules files. In the seventh, `rules.efx`, three `#include` lines follow a rule set without `;`, which the ANTLR grammar rejects too.
+- `efx('bare-expression')` reads an expression on its own, such as `BT-01-notice is present`, with no context in the text. It suits an application that keeps the condition of a rule apart from its context.
+- The SDK's grammar has no start rule for such a text: the editor reads it as the expression of `WITH context COMPUTE expression`, with the same highlighting and the same completions.
 
-### Completions
+### EFX-1 language support
 
-- The editor offers, at the cursor, the words the grammar can take there, described by the EFX Toolkit's completion list (161 items): the functions as calls with their required parameters and their signatures, the keywords, the field properties after a colon, the asset and label types in a label block, the format options, and the words of template lines and rules.
-- It offers the variables the cursor can use, and the field and node ids an application gives through the new export `efxSymbols`, where the grammar takes one.
-- In template text the list opens only when asked for (Ctrl-Space). Nothing is offered inside a comment or a string.
+- `efx(kind, { version: 1 })` reads EFX-1 text: a template file (`'template'`), a single expression with its context (`'expression'`) or a bare expression (`'bare-expression'`). EFX-1 has no rules files. Without the option, `efx(kind)` reads EFX-2, as before.
+- EFX-1 is highlighted with the EFX colours, as EFX-2 is. It offers no completions.
+- The EFX-1 parser reads the tokens of the SDK 1's lexer (see below, at SDK 1.16.0). It gives expressions no type, unlike the SDK's grammar, so it also reads some texts that the SDK's grammar refuses for their types, such as `'a' + 1`.
+- Tests compare the EFX-1 grouping of operators with the ANTLR parser's.
 
-### Changes for applications
+### The SDK's own lexer
 
-These changes break the setup of 0.2.1:
+- Both versions read their text with the SDK's ANTLR lexer (`efx-grammar/EfxLexer.g4`): `npm run sync` takes its compiled table from the lexer ANTLR generates, and the editor runs it as ANTLR runs it. The EFX-2 lexer of 0.3.0, written for the editor, is gone.
+- The editor's tokens are the lexer's: tests find them equal over the view templates and rules files of the SDK and over texts made at random, for both versions.
+- Some texts the editor read in 0.3.0, and ANTLR's lexer refuses, are now shown as errors, as ANTLR shows them: a missing or extra blank where the lexer requires or refuses one (`{ND-Root}a`, `DISPLAY${1}`), a rule id or scope annotation in an expression, and `$value` in a label block.
+- A keyword that the lexer reads with the whitespace after it (`DISPLAY`, `OTHERWISE DISPLAY`) is highlighted with it. A comment after the `;` of a template line, or after the path of an include, is highlighted as a comment.
+- After the label shorthand `#{name|`, the field ids are now offered.
+- The editor parses its text again from the first change on, as a change can make the lexer read the rest of the text otherwise.
 
-- `efx(kind)` takes the kind of text its editor holds: `'template'`, `'rules'` or `'expression'`. `efx()` without a kind, or with any other, is refused with a `RangeError`.
-- `efxLanguage` is no longer exported. `efx(kind).language` is the language of a kind.
-- `efx(kind)` gives the editor the EFX colours as its default colours, so `efxHighlightStyle` no longer needs to be added; an application's own `syntaxHighlighting(...)` replaces them. `efxHighlightStyle`, which the README of 0.2.1 named, now exists: it is the EFX colours.
-- `efxTheme`, a light look for the editor, is exported for applications that want it.
-- `@codemirror/autocomplete` is a new dependency. The application turns completion on with its `autocompletion()`.
+### Other changes
 
-### Colours
-
-The colours follow the new grammar's nodes; the palette is unchanged. Against 0.2.1:
-
-- string literals show in the literal colour, as the theme intended;
-- the `$` and `#` of `${` and `#{` are no longer bold;
-- `$value` and `#value` show as variables, and `name` in `#{name}` as a label type.
-
-### Fixes
-
-- The package's entry point loads. 0.2.1 re-exported an `efxHighlightStyle` that did not exist and imported its modules without their `.js` suffix.
-- `efx()` works in an editor. 0.2.1 gave CodeMirror the highlight tags as an extension, which CodeMirror refused.
-- The package declares `@lezer/lr` and `@lezer/highlight`, which it imports. They came only through `@codemirror/language`, which installers that keep each package to its declared dependencies do not allow. Nothing new is installed.
+- The EFX-2 grammar follows the SDK's at its new pinned commit, which removes the shortcuts `.`, `..` and `/` for a context (`{.}`, `{..}`, `{/}` and `context:$c = /`). The editor now shows them as errors.
+- The Publish workflow installs a fixed version of npm, so that a new release of npm cannot stop a publication.
+- `npm run sync` also reads the EFX-1 grammar and the view templates of the SDK 1, at the commit pinned in `package.json` (`config.sdk1`).
+- The repository no longer holds copies of the SDK's EFX files and ANTLR grammars, which only the tests and the demo read: `npm run sync` writes them, at the pinned commits, into folders git ignores.
+- Each version of EFX has its own folders, in `grammar/`, `src/` and `test/`.
 
 ### Known limits
 
-- After the label shorthand `#{name|` no field ids are offered.
 - After a `/` the `@` of an attribute is not offered.
 - After a syntax error nothing is offered until the error is fixed.

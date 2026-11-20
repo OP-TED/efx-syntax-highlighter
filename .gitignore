@@ -4,3 +4,9 @@ site/
 *.log
 .DS_Store
 .env
+
+# Written by npm run sync at the pinned commits, and read by the tests and the demo page.
+test/efx2/corpus/
+test/efx2/oracle/
+test/efx1/corpus/
+test/efx1/oracle/

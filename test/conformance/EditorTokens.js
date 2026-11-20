@@ -1,6 +1,7 @@
-// The editor's side of the conformance test: the tokens the editor's parser makes of a text.
+// The editor's side of the conformance test: the tokens one of the editor's parsers makes of a text,
+// by default the EFX-2 parser.
 
-import { parser } from '../../dist/efx-parser.js';
+import { parser } from '../../dist/efx2/parser.js';
 
 // The nodes that hold comments, left out as the lexer leaves its comments out.
 const COMMENTS = new Set(['Comment']);
@@ -9,14 +10,14 @@ const BLANK = /^\s*$/;
 
 export class EditorTokens {
   #text;
-  // The top rule of the grammar the text is read with.
-  #top;
+  // How the text is read: the parser, the top rule of its grammar and the dialect, if any.
+  #reading;
   #tokens = [];
   #end = 0;
 
-  constructor(text, top) {
+  constructor(text, reading) {
     this.#text = text;
-    this.#top = top;
+    this.#reading = reading;
   }
 
   /**
@@ -25,12 +26,13 @@ export class EditorTokens {
    * node of its own and is a token with no name. A parse error is a token named ⚠ where the error
    * starts.
    */
-  static of(text, top) {
-    return new EditorTokens(text, top).#read();
+  static of(text, top, { parser: readingParser = parser, dialect } = {}) {
+    return new EditorTokens(text, { parser: readingParser, top, dialect }).#read();
   }
 
   #read() {
-    const cursor = parser.configure({ top: this.#top }).parse(this.#text).cursor();
+    const { parser: readingParser, top, dialect } = this.#reading;
+    const cursor = readingParser.configure({ top, dialect }).parse(this.#text).cursor();
     do {
       const isLeaf = !EditorTokens.#hasChildren(cursor);
       if (cursor.type.isError || (isLeaf && cursor.from < cursor.to)) {

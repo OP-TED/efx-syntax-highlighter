@@ -37,8 +37,8 @@
 <body>
   <h1>EFX syntax highlighter demo</h1>
   <p>
-    The editor holds one kind of EFX text, in the EFX colours. While you type, it offers the words the
-    grammar takes at the cursor, the functions as calls; <kbd>Ctrl</kbd>+<kbd>Space</kbd> asks for them
+    The editor holds one kind of EFX text, in the EFX colours. In EFX-2 text, while you type, it offers
+    the words the grammar takes at the cursor, the functions as calls; <kbd>Ctrl</kbd>+<kbd>Space</kbd> asks for them
     anywhere, template text too. The field and node ids it offers are those the text uses. It is a
     plain CodeMirror editor, with no undo history and no key bindings beyond the completion's: the
     package depends on no more of CodeMirror.
@@ -46,9 +46,13 @@
   <p>
     <label>Text:
       <select id="kind">
-        <option value="template" data-file="../test/corpus/view-templates/30.efx">Template file: test/corpus/view-templates/30.efx</option>
-        <option value="rules" data-file="../test/corpus/validation/stage-4m.efx">Rules file: test/corpus/validation/stage-4m.efx</option>
-        <option value="expression" data-file="expression.efx">Single expression</option>
+        <option value="efx2-template" data-kind="template" data-version="2" data-file="../test/efx2/corpus/view-templates/30.efx">EFX-2 template file: test/efx2/corpus/view-templates/30.efx</option>
+        <option value="efx2-rules" data-kind="rules" data-version="2" data-file="../test/efx2/corpus/validation/stage-4m.efx">EFX-2 rules file: test/efx2/corpus/validation/stage-4m.efx</option>
+        <option value="efx2-expression" data-kind="expression" data-version="2" data-file="efx2-expression.efx">EFX-2 single expression</option>
+        <option value="efx2-bare-expression" data-kind="bare-expression" data-version="2" data-file="efx2-bare-expression.efx">EFX-2 bare expression (its context given apart)</option>
+        <option value="efx1-template" data-kind="template" data-version="1" data-file="../test/efx1/corpus/view-templates/1.efx">EFX-1 template file: test/efx1/corpus/view-templates/1.efx</option>
+        <option value="efx1-expression" data-kind="expression" data-version="1" data-file="efx1-expression.efx">EFX-1 single expression</option>
+        <option value="efx1-bare-expression" data-kind="bare-expression" data-version="1" data-file="efx1-bare-expression.efx">EFX-1 bare expression (its context given apart)</option>
       </select>
     </label>
   </p>

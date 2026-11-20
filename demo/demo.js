@@ -1,7 +1,7 @@
-// The demo page: an editor holding one kind of EFX text, with the EFX colours, the editor's look and
-// the completions. The field and node ids it offers are those the text uses, found by the shapes of
-// the grammar's FieldId and NodeId. Served by `npm run demo` after `npm run build`, and published by
-// the Pages workflow; not part of the package.
+// The demo page: an editor holding one kind of EFX-2 or EFX-1 text, with the EFX colours, the
+// editor's look and, for EFX-2, the completions. The field and node ids it offers are those the text
+// uses, found by the shapes of the grammar's FieldId and NodeId. Served by `npm run demo` after
+// `npm run build`, and published by the Pages workflow; not part of the package.
 
 import { autocompletion } from '@codemirror/autocomplete';
 import { EditorState } from '@codemirror/state';
@@ -20,20 +20,22 @@ function idsIn(text, shape) {
 }
 
 /**
- * Shows the text of the chosen kind, from the file its option names, in the editor with the extensions of
- * that kind, unless another kind was chosen meanwhile.
+ * Shows the text of the chosen kind and version, from the file its option names, in the editor with the
+ * extensions of that kind, unless another text was chosen meanwhile.
  */
 async function show() {
   const option = choice.selectedOptions[0];
-  const kind = option.value;
+  const { value } = option;
+  const { kind } = option.dataset;
+  const version = Number(option.dataset.version);
   const text = await (await fetch(option.dataset.file)).text();
-  if (choice.value !== kind) {
+  if (choice.value !== value) {
     return;
   }
   view.setState(EditorState.create({
     doc: text,
     extensions: [
-      efx(kind),
+      efx(kind, { version }),
       efxTheme,
       efxSymbols.of({ fields: idsIn(text, FIELD_ID), nodes: idsIn(text, NODE_ID) }),
       autocompletion(),

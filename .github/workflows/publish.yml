@@ -25,7 +25,7 @@ jobs:
           registry-url: 'https://registry.npmjs.org'
 
       - name: Upgrade npm
-        run: npm install -g npm@latest
+        run: npm install -g npm@12.2.3
 
       - name: Show versions
         run: |
@@ -34,6 +34,11 @@ jobs:
 
       - name: Install dependencies
         run: npm ci
+
+      - name: Sync the files the tests read
+        run: npm run sync
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
 
       - name: Build package
         run: npm run build

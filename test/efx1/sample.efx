@@ -1,0 +1,16 @@
+// An EFX-1 template file that holds each kind of token the grammar styles
+1 {ND-Root} #{auxiliary|text|procedure} // a comment at the end of a line
+	2 {ND-Lot[BT-137-Lot is present]} #{field|name|BT-137-Lot}: ${BT-137-Lot}
+		{BT-21-Lot} #{name|BT-21-Lot} #{BT-21-Lot} #{name} $value #value
+		{ND-Lot} #{${"field"}|${"name"}|${"BT-21-Lot"}} #{business-term|description|BT-21}
+	3 {BT-131(d)-Lot} ${if BT-131(d)-Lot > 2024-01-01Z then 'later' else "earlier"}
+	{ND-Root} ${count(for text:$id in BT-137-Lot return $id) + 1 * 2 - 3 / 4 % 5}
+	{ND-Root} ${every number:$n in /BT-27-Lot satisfies $n >= 0 and $n != -1.5 or $n < .5}
+	{ND-Root} ${some date:$d in BT-536-Lot satisfies $d <= add-measure(2024-01-01Z, P3D)}
+	{ND-Root} ${BT-01-notice in ('a', "b") or BT-01-notice not like '[a-z]+' and BT-02-notice is not empty}
+	{ND-Root} ${ND-Lot::BT-137-Lot is unique in /BT-137-Lot and preceding-sibling::BT-137-Lot is present}
+	{ND-Root} ${BT-01-notice/@listName == notice('x')/BT-02-notice and TRUE != FALSE and ALWAYS or NEVER}
+	{ND-Root} ${not(contains('abc', substring("abc", 1, 2))) and string-length('a') == 1 and $c::BT-01-notice is present}
+	{ND-Root} ${12:00:00Z == time('12:00:00Z') and P1Y == year-month-duration('P1Y') and indicator:BT-03-notice}
+	{ND-Root} ${measure:BT-04-notice == P2W and BT-05-notice == {12345678-1234-1234-1234-123456789012}}
+	{ND-Root} ${sum(BT-06-Lot) == count(distinct-values(BT-06-Lot)) and sequence-equal(value-union(BT-07-Lot, BT-08-Lot), value-except(BT-07-Lot, BT-08-Lot))}
