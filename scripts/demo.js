@@ -1,7 +1,6 @@
 // Serves the repository for the demo page, demo/index.html, which loads the build in dist/, its
-// samples in demo/ and test/ and CodeMirror from node_modules/: `npm run sync` (which writes the
-// samples in test/), `npm run build`, then `npm run demo`, then open the address it prints. Only
-// files inside the repository are served.
+// samples and the TED look in demo/ and CodeMirror from node_modules/: `npm run build`, then
+// `npm run demo`, then open the address it prints. Only files inside the repository are served.
 
 import fs from 'node:fs/promises';
 import http from 'node:http';
@@ -10,7 +9,17 @@ import { fileURLToPath } from 'node:url';
 
 const ROOT = fileURLToPath(new URL('../', import.meta.url));
 const PORT = Number(process.env.PORT ?? 8080);
-const TYPES = { '.html': 'text/html', '.js': 'text/javascript', '.efx': 'text/plain; charset=utf-8' };
+const TYPES = {
+  '.html': 'text/html',
+  '.js': 'text/javascript',
+  '.css': 'text/css',
+  '.efx': 'text/plain; charset=utf-8',
+  '.md': 'text/plain; charset=utf-8',
+  '.txt': 'text/plain; charset=utf-8',
+  '.svg': 'image/svg+xml',
+  '.png': 'image/png',
+  '.woff2': 'font/woff2',
+};
 
 /** The file of the repository that a request asks for, or null when it asks for none. */
 function fileOf(request) {

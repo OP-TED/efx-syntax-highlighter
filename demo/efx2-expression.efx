@@ -1,1 +1,1 @@
-WITH ND-Root COMPUTE BT-01-notice is present
+WITH ND-Root COMPUTE count(BT-137-Lot) > 1 and BT-01-notice is present
