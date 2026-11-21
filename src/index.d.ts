@@ -34,8 +34,17 @@ export interface EfxSymbols {
  */
 export const efxSymbols: Facet<EfxSymbols, { fields: (string | EfxSymbol)[]; nodes: (string | EfxSymbol)[] }>;
 
-/** The EFX colours, which efx() gives the editor as its default colours. */
+/** The EFX colours for a light background, which efx() gives the editor as its default colours. */
 export const efxHighlightStyle: HighlightStyle;
 
 /** A light look for the editor itself, which an application adds if it wants it. */
 export const efxTheme: Extension;
+
+/** The EFX colours for a dark background. efxDarkTheme already includes them. */
+export const efxDarkHighlightStyle: HighlightStyle;
+
+/**
+ * A dark look for the editor itself, with the EFX colours for a dark background, which an application
+ * adds instead of efxTheme on a dark screen.
+ */
+export const efxDarkTheme: Extension;

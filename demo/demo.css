@@ -88,6 +88,83 @@ kbd {
   position: relative;
 }
 
+/* The text and the switch side by side, wrapping under each other when narrow. */
+.controls {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  column-gap: var(--gs-base-spacing-l);
+}
+
+.controls .form-group {
+  flex: 1 1 18rem;
+}
+
+.controls .form-group:last-child {
+  flex: 0 0 auto;
+}
+
+.group-label {
+  display: block;
+  font-size: var(--gs-base-font-size-s);
+  font-weight: 700;
+}
+
+/* The switch: two buttons joined, the chosen one filled, as a TED button group. */
+.switch {
+  display: inline-flex;
+}
+
+.switch button {
+  font: inherit;
+  font-size: var(--gs-base-font-size-m);
+  line-height: 1.4;
+  padding: 10px var(--gs-base-spacing-m);
+  border: 1px solid var(--gs-base-color-gray-60);
+  background: var(--gs-base-color-white);
+  color: var(--gs-base-color-gray-100);
+  cursor: pointer;
+}
+
+.switch button:first-child {
+  border-radius: var(--gs-base-radius-s) 0 0 var(--gs-base-radius-s);
+}
+
+.switch button:last-child {
+  border-left: 0;
+  border-radius: 0 var(--gs-base-radius-s) var(--gs-base-radius-s) 0;
+}
+
+.switch button[aria-pressed="true"] {
+  background: var(--gs-base-color-forest-110);
+  border-color: var(--gs-base-color-forest-110);
+  color: var(--gs-base-color-white);
+  font-weight: 700;
+}
+
+.switch button:hover:not([aria-pressed="true"]) {
+  background: var(--gs-base-color-gray-5);
+}
+
+/* The palette: what each colour marks, under the editor. */
+.palette {
+  list-style: none;
+  margin: var(--gs-base-spacing-s) 0 0;
+  padding: 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--gs-base-spacing-xs) var(--gs-base-spacing-l);
+  font-size: var(--gs-base-font-size-s);
+}
+
+.palette .sample {
+  display: inline-block;
+  font-family: var(--gs-base-font-family-monospace);
+  padding: 0 var(--gs-base-spacing-2xs);
+  border: 1px solid var(--gs-base-color-gray-20);
+  border-radius: var(--gs-base-radius-xs);
+}
+
 .select select {
   width: 100%;
   box-sizing: border-box;
@@ -121,7 +198,6 @@ kbd {
   max-height: 75vh;
   border: 1px solid var(--gs-base-color-gray-60);
   border-radius: var(--gs-base-radius-s);
-  background: var(--gs-base-color-white);
 }
 
 #editor .caption {
@@ -186,6 +262,17 @@ kbd {
 
 #editor .cm-tooltip.cm-tooltip-autocomplete > ul > li[aria-selected] * {
   color: var(--gs-base-color-white);
+}
+
+/* The list of suggestions on the dark background. Not a TED colour: the TED design system has no
+   dark colours, so these follow the package's dark look. */
+#editor.dark .cm-tooltip.cm-tooltip-autocomplete {
+  background: #2a2c30;
+  border-color: #3c3f44;
+}
+
+#editor.dark .cm-tooltip.cm-tooltip-autocomplete > ul > li {
+  color: #e6e6e6;
 }
 
 /* Third-party components */

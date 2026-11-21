@@ -236,6 +236,7 @@
       demonstration, the identifiers suggested are those found in the sample text; an application provides its own
       list.</p>
 
+    <div class="controls">
     <div class="form-group">
       <label for="kind">Text</label>
       <div class="select">
@@ -249,8 +250,17 @@
         <i class="ph ph-caret-down" aria-hidden="true"></i>
       </div>
     </div>
+    <div class="form-group">
+      <span class="group-label" id="background-label">Editor background</span>
+      <div class="switch" role="group" aria-labelledby="background-label">
+        <button type="button" id="light" aria-pressed="true">Light</button>
+        <button type="button" id="dark" aria-pressed="false">Dark</button>
+      </div>
+    </div>
+    </div>
 
     <div id="editor"></div>
+    <ul class="palette" id="palette" aria-label="What each colour marks"></ul>
     <p class="ted-secondary note" id="editor-keys">In the list of suggestions, use the <kbd>Up</kbd> and <kbd>Down</kbd>
       arrow keys to move, <kbd>Enter</kbd> to insert the selected suggestion and <kbd>Escape</kbd> to close the list.
       This demonstration adds nothing to CodeMirror beyond the highlighter, so the editor has no undo function and no
