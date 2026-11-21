@@ -62,8 +62,8 @@
     "typescript": "5.9.3"
   },
   "config": {
-    "sdk": "OP-TED/eForms-SDK@148e48dd30f76d60b2d6b864aa32f36af5f5974b",
-    "toolkit": "OP-TED/efx-toolkit-java@dd14c740a9da8ce6bc8ede04aae133fa919d82b7",
+    "sdk": "OP-TED/eForms-SDK@692efa530206189c5790dc1029f1e9272fd28c20",
+    "toolkit": "OP-TED/efx-toolkit-java@5c1bfc52aa092eee6d8703b726bc58f04c0c2bb5",
     "sdk1": "OP-TED/eForms-SDK@201c7f738cb9d500433d125af95f3a02b74710c0"
   }
 }

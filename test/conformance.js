@@ -25,7 +25,7 @@ const LANGUAGES = [
     names: Efx2TokenNames,
     pinned: {
       validation: { files: 7, tokens: 128456 },
-      'view-templates': { files: 51, tokens: 349023 },
+      'view-templates': { files: 51, tokens: 346668 },
     },
   },
   {

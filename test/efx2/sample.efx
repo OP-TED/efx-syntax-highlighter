@@ -23,7 +23,7 @@ DISPLAY ${$street}, ${$town}; // a callable template
 			// Not used anymore
 			WITH BT-263-Procedure[BT-26(a)-Procedure == 'cpv'] DISPLAY #{field|name|BT-263-Procedure} (${BT-26(a)-Procedure}): ${BT-263-Procedure} #{BT-263-Procedure}; // Additional classification (CPV)
 			// Not used anymore
-		2 WITH ND-ProcedurePlacePerformance DISPLAY #{auxiliary|text|place-performance}; // 2.1.2 Place of performance
+		? WITH ND-ProcedurePlacePerformance DISPLAY #{auxiliary|text|place-performance}; // 2.1.2 Place of performance
 			WITH BT-5101(a)-Procedure DISPLAY #{field|name|BT-5101(a)-Procedure}: ${BT-5101(a)-Procedure} ${BT-5101(b)-Procedure} ${BT-5101(c)-Procedure}; // Place Performance Postal address
 			WITH ND-ProcedurePlacePerformance INVOKE address(BT-5101(a)-Procedure, BT-5131-Procedure); // Place Performance address
 			WITH BT-5131-Procedure DISPLAY #{field|name|BT-5131-Procedure}: ${BT-5131-Procedure}; // Place Performance Town
@@ -64,7 +64,7 @@ DISPLAY ${$street}, ${$town}; // a callable template
 		WITH BT-505-Organization-Company DISPLAY #{field|name|BT-505-Organization-Company}: ${BT-505-Organization-Company}; // Organization Internet Address
 		WITH BT-509-Organization-Company DISPLAY #{field|name|BT-509-Organization-Company}: ${BT-509-Organization-Company}; // Organization eDelivery Gateway
 		WITH BT-508-Procedure-Buyer[OPT-300-Procedure-Buyer == $orgid] DISPLAY #{field|name|BT-508-Procedure-Buyer}: ${BT-508-Procedure-Buyer}; // Buyer Profile URL
-		0 WITH ND-Touchpoint DISPLAY #{auxiliary|text|other-contact-point}:; // TouchPoint / Other contact points
+		# WITH ND-Touchpoint DISPLAY #{auxiliary|text|other-contact-point}:; // TouchPoint / Other contact points
 			WITH ND-Touchpoint[BT-500-Organization-TouchPoint is present] DISPLAY #{field|name|BT-500-Organization-TouchPoint}: ${BT-500-Organization-TouchPoint}; // Buyer Touchpoint Name
 			WITH BT-16-Organization-TouchPoint DISPLAY #{field|name|BT-16-Organization-TouchPoint}: ${BT-16-Organization-TouchPoint}; // Touchpoint Part Name
 			WITH BT-510(a)-Organization-TouchPoint DISPLAY #{field|name|BT-510(a)-Organization-TouchPoint}: ${BT-510(a)-Organization-TouchPoint} ${BT-510(b)-Organization-TouchPoint} ${BT-510(c)-Organization-TouchPoint}; // Touchpoint Postal Address
@@ -78,8 +78,8 @@ DISPLAY ${$street}, ${$town}; // a callable template
 			WITH BT-739-Organization-TouchPoint DISPLAY #{field|name|BT-739-Organization-TouchPoint}: ${BT-739-Organization-TouchPoint}; // Touchpoint Contact Fax
 			WITH BT-505-Organization-TouchPoint DISPLAY #{field|name|BT-505-Organization-TouchPoint}: ${BT-505-Organization-TouchPoint}; // Touchpoint Internet Address
 			WITH BT-509-Organization-TouchPoint DISPLAY #{field|name|BT-509-Organization-TouchPoint}: ${BT-509-Organization-TouchPoint}; // Touchpoint eDelivery Gateway
-		0 WITH ND-Organization DISPLAY #{auxiliary|text|roles}:; // Roles of this organisation
-			0 WITH OPT-300-Procedure-Buyer[OPT-300-Procedure-Buyer == $orgid] DISPLAY #{auxiliary|text|buyer}; // This org is a Buyer
+		# WITH ND-Organization DISPLAY #{auxiliary|text|roles}:; // Roles of this organisation
+			# WITH OPT-300-Procedure-Buyer[OPT-300-Procedure-Buyer == $orgid] DISPLAY #{auxiliary|text|buyer}; // This org is a Buyer
 			WITH OPT-030-Procedure-SProvider[OPT-030-Procedure-SProvider[(OPT-300-Procedure-SProvider == $orgid) or (OPT-300-Procedure-SProvider == $tpoid)] == 'serv-prov'] DISPLAY #{auxiliary|text|organisation-providing-procurement-service}; // This org is a Service Provider
 			WITH OPT-030-Procedure-SProvider[OPT-030-Procedure-SProvider[(OPT-300-Procedure-SProvider == $orgid) or (OPT-300-Procedure-SProvider == $tpoid)] == 'ted-esen'] DISPLAY #{auxiliary|text|organisation-providing-procurement-service}; // This org is an eSender
 10 WITH ND-Root[BT-758-notice is present] DISPLAY #{auxiliary|text|change}; // 10 Change
@@ -91,7 +91,7 @@ DISPLAY ${$street}, ${$town}; // a callable template
 		WITH ND-Change[BT-141(a)-notice is present] DISPLAY #{field|name|BT-141(a)-notice}: ${BT-141(a)-notice}; // Change Description
 		WITH BT-719-notice 
 		DISPLAY #{field|name|BT-718-notice}: $value; // Change Procurement Documents / Change Procurement Documents Date
-0 DISPLAY #{auxiliary|text|notice-information}; // Notice information
+# DISPLAY #{auxiliary|text|notice-information}; // Notice information
 	WITH BT-701-notice DISPLAY #{field|name|BT-701-notice}: ${BT-701-notice} - ${BT-757-notice}; // Notice identifier / version
 	WITH BT-03-notice DISPLAY #{field|name|BT-03-notice}: #{BT-03-notice}; // Form type
 	WITH BT-02-notice DISPLAY #{field|name|BT-02-notice}: #{BT-02-notice}; // Notice type
