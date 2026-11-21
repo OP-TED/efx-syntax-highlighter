@@ -4,7 +4,7 @@
 import { autocompletion } from '@codemirror/autocomplete';
 import type { LanguageSupport } from '@codemirror/language';
 import { EditorState, type Extension } from '@codemirror/state';
-import { efx, efxHighlightStyle, efxSymbols, efxTheme, type EfxCommonKind, type EfxKind } from '@op-ted/efx-syntax-highlighter';
+import { efx, efxDarkHighlightStyle, efxDarkTheme, efxHighlightStyle, efxSymbols, efxTheme, type EfxCommonKind, type EfxKind } from '@op-ted/efx-syntax-highlighter';
 
 const template: LanguageSupport = efx('template');
 const rules: LanguageSupport = efx('rules', { version: 2 });
@@ -19,8 +19,8 @@ const symbols: Extension = efxSymbols.of({ fields: ['BT-01-notice', { id: 'BT-02
 const { fields, nodes } = EditorState.create({ extensions: [efx(kind), symbols] }).facet(efxSymbols);
 const ids: string[] = [...fields, ...nodes].map((entry) => (typeof entry === 'string' ? entry : entry.id));
 const types: (string | undefined)[] = fields.map((entry) => (typeof entry === 'string' ? undefined : entry.type));
-const extensions: Extension[] = [template, rules, efx1, chosen, optional, autocompletion(), efxTheme];
-const colours = efxHighlightStyle.module;
+const extensions: Extension[] = [template, rules, efx1, chosen, optional, autocompletion(), efxTheme, efxDarkTheme];
+const colours = [efxHighlightStyle.module, efxDarkHighlightStyle.module];
 
 // @ts-expect-error an unknown kind
 efx('templat');

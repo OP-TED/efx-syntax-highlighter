@@ -2,7 +2,8 @@
 // what the entry point offers; that efx(kind) reads each kind of EFX-2 text from its own top, with no
 // error, and offers its completions; that efx(kind, { version: 1 }) reads each kind of EFX-1 text,
 // highlighted as EFX-2 is, and offers none; that each text of the demo page reads with no error; that
-// the EFX colours are the editor's default colours and give way to an application's own; and that an
+// the EFX colours are the editor's default colours and give way to an application's own, and to the
+// dark ones with the dark look; and that an
 // unknown kind or version is refused. It reads the build in dist/, so it runs after `npm run build`.
 // What the completions offer is checked by efx2/completions.js.
 
@@ -46,8 +47,13 @@ function errorsIn(tree) {
 }
 
 const CHECKS = {
-  'the entry point offers efx, efxSymbols, efxHighlightStyle and efxTheme': () => {
-    assert.deepEqual(Object.keys(entryPoint).sort(), ['efx', 'efxHighlightStyle', 'efxSymbols', 'efxTheme']);
+  'the entry point offers efx, efxSymbols, the light and dark colours and looks': () => {
+    assert.deepEqual(Object.keys(entryPoint).sort(),
+      ['efx', 'efxDarkHighlightStyle', 'efxDarkTheme', 'efxHighlightStyle', 'efxSymbols', 'efxTheme']);
+  },
+  'the dark look gives the editor the dark colours': () => {
+    const state = EditorState.create({ extensions: [efx('template'), entryPoint.efxDarkTheme] });
+    assert.equal(highlightingFor(state, [tags.keyword]), entryPoint.efxDarkHighlightStyle.style([tags.keyword]));
   },
   ...Object.fromEntries(KINDS.map(({ kind, top, text }) => [`efx('${kind}') reads its text from ${top}`, () => {
     const tree = treeOf(EditorState.create({ doc: text, extensions: [efx(kind)] }));

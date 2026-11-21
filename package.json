@@ -1,6 +1,6 @@
 {
   "name": "@op-ted/efx-syntax-highlighter",
-  "version": "0.5.0",
+  "version": "0.6.0",
   "description": "Lezer-based parser and CodeMirror 6 language support for EFX: syntax highlighting and completions.",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
@@ -16,7 +16,7 @@
   ],
   "scripts": {
     "build": "node scripts/build.js",
-    "test": "node test/synced.js && node test/package.js && node test/sync.js && node test/lexer.js && node test/conformance.js && node test/styles.js && node test/efx2/trees.js && node test/efx2/completions.js && node test/efx1/entries.js && node test/incremental.js && node test/types.js",
+    "test": "node test/synced.js && node test/package.js && node test/sync.js && node test/lexer.js && node test/conformance.js && node test/styles.js && node test/efx2/trees.js && node test/efx2/completions.js && node test/efx1/entries.js && node test/incremental.js && node test/types.js && node test/colours.js",
     "sync": "node scripts/sync.js",
     "demo": "node scripts/demo.js",
     "site": "node scripts/site.js"

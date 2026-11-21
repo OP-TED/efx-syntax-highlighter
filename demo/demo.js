@@ -4,16 +4,56 @@
 // `npm run build`, and published by the Pages workflow; not part of the package.
 
 import { autocompletion } from '@codemirror/autocomplete';
-import { EditorState } from '@codemirror/state';
+import { Compartment, EditorState } from '@codemirror/state';
 import { EditorView } from '@codemirror/view';
-import { efx, efxSymbols, efxTheme } from '../dist/index.js';
+import { efx, efxDarkTheme, efxSymbols, efxTheme } from '../dist/index.js';
+import { DARK_BACKGROUND, DARK_COLOURS, LIGHT_BACKGROUND, LIGHT_COLOURS } from '../dist/efxTheme.js';
 
 const FIELD_ID = /\b(?:BT|OPP|OPT|OPA)-\d+(?:\((?:BT-\d+|[a-z])\))?(?:-[a-zA-Z_][a-zA-Z_0-9]*)+/g;
 const NODE_ID = /\bND-[a-zA-Z0-9]+/g;
 
 const editors = document.getElementById('editor');
 const choice = document.getElementById('kind');
+const palette = document.getElementById('palette');
+const buttons = { light: document.getElementById('light'), dark: document.getElementById('dark') };
 let views = [];
+let background = 'light';
+// The look of the editors, which the switch changes without touching their texts.
+const look = new Compartment();
+
+// The two looks of the editor: its theme, and the colours and background its palette shows.
+const LOOKS = {
+  light: { theme: efxTheme, colours: LIGHT_COLOURS, background: LIGHT_BACKGROUND },
+  dark: { theme: efxDarkTheme, colours: DARK_COLOURS, background: DARK_BACKGROUND },
+};
+
+// The palette: what each colour marks, with an example in that colour.
+const KEY = [
+  { colour: 'keyword', label: 'Keywords and the words of expressions', example: 'WITH', bold: true },
+  { colour: 'data', label: 'Fields and nodes', example: 'BT-21-Lot', bold: true },
+  { colour: 'variable', label: 'Variables and declared functions', example: '$value', bold: true },
+  { colour: 'literal', label: 'Literals and names of labels', example: "'LOT-0001'" },
+  { colour: 'operator', label: 'Operators and punctuation', example: '== ;', bold: true },
+  { colour: 'comment', label: 'Comments', example: '// note', italic: true },
+];
+
+/** Shows the palette of the chosen look. */
+function showPalette() {
+  const { colours, background: ground } = LOOKS[background];
+  palette.replaceChildren(...KEY.map(({ colour, label, example, bold, italic }) => {
+    const item = document.createElement('li');
+    const sample = document.createElement('span');
+    sample.className = 'sample';
+    sample.textContent = example;
+    sample.style.color = colours[colour];
+    sample.style.background = ground;
+    sample.style.fontWeight = bold ? '700' : '400';
+    sample.style.fontStyle = italic ? 'italic' : 'normal';
+    sample.setAttribute('aria-hidden', 'true');
+    item.append(sample, ` ${label}`);
+    return item;
+  }));
+}
 
 /** The ids of a shape that a text uses, each once. */
 function idsIn(text, shape) {
@@ -49,6 +89,7 @@ async function show() {
   }
   editors.replaceChildren();
   editors.classList.toggle('several', texts.length > 1);
+  editors.classList.toggle('dark', background === 'dark');
   views = texts.map(({ kind, label }, index) => {
     const doc = docs[index];
     let captionId = null;
@@ -66,7 +107,7 @@ async function show() {
         doc,
         extensions: [
           efx(kind, { version }),
-          efxTheme,
+          look.of(LOOKS[background].theme),
           attributes(captionId),
           efxSymbols.of({ fields: idsIn(doc, FIELD_ID), nodes: idsIn(doc, NODE_ID) }),
           autocompletion(),
@@ -77,5 +118,21 @@ async function show() {
   });
 }
 
+/** Changes the background of the editors, keeping their texts as they are. */
+function choose(name) {
+  background = name;
+  for (const [buttonName, button] of Object.entries(buttons)) {
+    button.setAttribute('aria-pressed', String(buttonName === name));
+  }
+  editors.classList.toggle('dark', name === 'dark');
+  for (const view of views) {
+    view.dispatch({ effects: look.reconfigure(LOOKS[name].theme) });
+  }
+  showPalette();
+}
+
+buttons.light.addEventListener('click', () => choose('light'));
+buttons.dark.addEventListener('click', () => choose('dark'));
+showPalette();
 choice.addEventListener('change', show);
 show();

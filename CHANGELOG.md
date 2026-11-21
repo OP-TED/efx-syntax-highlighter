@@ -1,4 +1,4 @@
-# EFX Syntax Highlighter 0.5.0 Release Notes
+# EFX Syntax Highlighter 0.6.0 Release Notes
 
 _The EFX Syntax Highlighter gives [CodeMirror 6](https://codemirror.net/) editors syntax highlighting and completions for [EFX](https://docs.ted.europa.eu/eforms/latest/efx), the expression and template language of the eForms SDK._
 
@@ -6,30 +6,24 @@ _The EFX Syntax Highlighter gives [CodeMirror 6](https://codemirror.net/) editor
 
 ## In this release
 
-This release follows the EFX-2 grammar of the eForms SDK as it now stands, on its `efx-2` branch: the SDK has removed some forms from EFX-2 and added others. The editor reads EFX-2 text as the SDK does, so a text written for 0.4 that uses a removed form is now shown with an error. EFX-1 is unchanged. An application that sets up its editor as for 0.4 needs no change.
+This release makes the EFX colours readable for everyone, and adds a set of colours for dark backgrounds ([TEDEFO-5374](https://citnet.tech.ec.europa.eu/CITnet/jira/browse/TEDEFO-5374)). An application that sets up its editor as for 0.5 needs no change; its editor shows the new colours.
 
-### What EFX-2 has gained
+### Colours that reach 4.5:1
 
-- A template file can declare its callable templates in `--- TEMPLATE name ---` sections, each with an optional `PARAMETERS` line, followed by the main section under its `--- MAIN ---` heading. The heading is optional when the file has no template sections.
-- A template line may start with an outline marker: a number from 1 gives the line that number, `?` gives it the next number at its level, and `#` gives it none, as a line without a marker. The markers are coloured as literals.
-- `#include "path"` may end with a `;`.
-- The last line of a file may end with a comment and no line end.
+Every colour now reaches 4.5:1 against a white background, the contrast that WCAG 2.1 AA and EN 301 549 require for text of the size an editor shows. Four colours were below it. They keep their hues, a little darker:
 
-### What EFX-2 has lost
+| Colours | Before | Now |
+|---|---|---|
+| Fields and nodes | `#269d69` | `#208559` |
+| Variables, and declared functions and templates | `#cc7a0a` | `#a96508` |
+| Literals, outline numbers, and names of assets, rules and stages | `#e14775` | `#dc2b60` |
+| Comments | `#999999` | `#757575` |
 
-- The EFX-1 forms: the template line `{context} template` and the single expressions `{context} ${expression}` and `{context} &{selection}`. Write `WITH context DISPLAY template;`, `WITH context COMPUTE expression` and `WITH context SELECT selection`.
-- Templates declared with `LET template:name(...)`: they are declared in `--- TEMPLATE ---` sections.
-- Field and node aliases: a field or a node is named by its id.
-- The codelist form `#codelist`: write `[...codelist]`.
-- A context override after anything but a context variable: `$context::BT-1-Lot` stays, `ND-Lot::BT-1-Lot` goes.
-- A rule without its `;`: each rule now ends with one, and the rules after the first one of a rule set may be indented.
-- The outline number `0`: write `#` for a line without a number.
+Punctuation, and the brackets `${`, `#{` and `}`, are now grey like the operators, instead of the orange of variables, so that variables stand out. The brackets are bold, so that the start and end of an expression in template text stay easy to find. All other colours are as before.
 
-### Colours and completions
+### Colours for dark backgrounds
 
-- The headings of template sections and the main section, and `PARAMETERS`, are coloured as keywords, and the name of a template section as a function.
-- The completions follow the toolkit's list for the new grammar.
+- **`efxDarkTheme`** is a dark look for the editor, with the EFX colours for a dark background. An application adds it instead of `efxTheme` on a dark screen. The colours keep the same hue for the same kind of word, lightened to about 7:1 against the dark background `#1e1f22`.
+- **`efxDarkHighlightStyle`** is those colours on their own, for an application that gives its editor its own dark look.
 
-### Editing a text with errors
-
-- After an edit, the editor reuses its earlier tree only up to the first error in it. Before, a text with errors early on could be read differently after an edit than when read anew; a new test checks texts wrong throughout.
+A new test checks that every colour of both sets reaches 4.5:1 against its background.
