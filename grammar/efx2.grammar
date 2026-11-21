@@ -350,7 +350,8 @@ DictionaryIndexClause { Index fieldContext }
 DictionaryKeyClause { By expression }
 
 TemplateLine {
-  Indentation? OutlineNumber? (With ContextDeclarationBlock)? (ChooseTemplate | DisplayTemplate | InvokeTemplate) Semicolon
+  Indentation? (OutlineNumber | AutoOutlineNumber | NoOutlineNumber)? (With ContextDeclarationBlock)?
+  (ChooseTemplate | DisplayTemplate | InvokeTemplate) Semicolon
 }
 
 Indentation { Tabs | Spaces | MixedIndent }
@@ -447,7 +448,7 @@ FunctionDeclaration {
   Api, On, Warn, Reject, Error, Warning, Info, Assert, Report, OtherwiseAssert, OtherwiseReport, As, FOR, IN,
   Any, Scope, IncludeDirective, PublicationDate, JustificationCode, JustificationDescription, PrivacyCode,
   WasWithheld, IsWithheld, IsWithholdable, IsDisclosed, IsMasked, RawValue, PreferredLanguage,
-  PreferredLanguageText, IncludePath, MixedIndent, Tabs, Spaces, OutlineNumber,
+  PreferredLanguageText, IncludePath, MixedIndent, Tabs, Spaces, OutlineNumber, AutoOutlineNumber, NoOutlineNumber,
   MainSectionHeader, SummarySectionHeader, NavigationSectionHeader, TemplateSectionHeaderStart, TemplateSectionHeaderEnd,
   Parameters, StageHeaderStart, StageIdentifier, StageHeaderEnd, NewLine,
   CharacterReference, ShorthandFieldValueReferenceFromContextField, StartLabelBlock,

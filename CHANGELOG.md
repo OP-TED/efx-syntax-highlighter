@@ -11,6 +11,7 @@ This release follows the EFX-2 grammar of the eForms SDK as it now stands, on it
 ### What EFX-2 has gained
 
 - A template file can declare its callable templates in `--- TEMPLATE name ---` sections, each with an optional `PARAMETERS` line, followed by the main section under its `--- MAIN ---` heading. The heading is optional when the file has no template sections.
+- A template line may start with an outline marker: a number from 1 gives the line that number, `?` gives it the next number at its level, and `#` gives it none, as a line without a marker. The markers are coloured as literals.
 - `#include "path"` may end with a `;`.
 - The last line of a file may end with a comment and no line end.
 
@@ -22,6 +23,7 @@ This release follows the EFX-2 grammar of the eForms SDK as it now stands, on it
 - The codelist form `#codelist`: write `[...codelist]`.
 - A context override after anything but a context variable: `$context::BT-1-Lot` stays, `ND-Lot::BT-1-Lot` goes.
 - A rule without its `;`: each rule now ends with one, and the rules after the first one of a rule set may be indented.
+- The outline number `0`: write `#` for a line without a number.
 
 ### Colours and completions
 

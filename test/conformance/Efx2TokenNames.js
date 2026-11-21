@@ -11,7 +11,7 @@ const SAME_NAMES = [
   'Colon', 'Pipe', 'Comma', 'Semicolon', 'Assignment', 'OpenParenthesis', 'CloseParenthesis', 'OpenBracket',
   'CloseBracket', 'Ellipsis', 'StartExpressionBlock', 'EndBlock', 'VariablePrefix', 'HashPrefix', 'AtPrefix', 'FunctionPrefix',
   // Template files: lines, sections and includes.
-  'Tabs', 'Spaces', 'OutlineNumber', 'Let', 'With', 'When', 'Display', 'Otherwise', 'Invoke', 'Index', 'By',
+  'Tabs', 'Spaces', 'OutlineNumber', 'AutoOutlineNumber', 'NoOutlineNumber', 'Let', 'With', 'When', 'Display', 'Otherwise', 'Invoke', 'Index', 'By',
   'MainSectionHeader', 'TemplateSectionHeaderStart', 'TemplateSectionHeaderEnd', 'Parameters',
   'SummarySectionHeader', 'NavigationSectionHeader', 'IncludeDirective', 'IncludePath',
   // Rules files.
