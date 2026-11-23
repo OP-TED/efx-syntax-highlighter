@@ -54,11 +54,15 @@ function efx1Reading(entry) {
   return { text: `{ND-Root} \${${entry.expression}}`, top: 'SingleExpression' };
 }
 
+// The kind of text that each top reads, as efxHighlights names it.
+const KIND_OF_TOP = { TemplateFile: 'template', RulesFile: 'rules', SingleExpression: 'expression' };
+
 // Each version: its parser, its style table, and what it pins: a file and the top that reads it, or
 // the readings of entries, each with the file of its runs, by their paths in test/.
 const VERSIONS = [
   {
     name: 'EFX-2',
+    version: 2,
     parser: efx2Parser,
     styles: EFX2_STYLES,
     pinned: [
@@ -69,6 +73,7 @@ const VERSIONS = [
   },
   {
     name: 'EFX-1',
+    version: 1,
     parser: efx1Parser,
     styles: EFX1_STYLES,
     pinned: [
@@ -94,8 +99,8 @@ function textsOf(pin) {
 }
 
 /** The runs of a pin: those of each of its texts, each after the line that names it, if any. */
-const runsOf = (parser, pin) => textsOf(pin).flatMap(({ text, top, title }) =>
-  [...(title === undefined ? [] : [title]), ...StyleDump.of(parser, text, top)]);
+const runsOf = (version, pin) => textsOf(pin).flatMap(({ text, top, title }) =>
+  [...(title === undefined ? [] : [title]), ...StyleDump.of(text, KIND_OF_TOP[top], version)]);
 
 /**
  * The tokens of a pin's texts that the EFX colours leave uncoloured, by name: a token none of whose
@@ -138,7 +143,7 @@ function nodesOf(parser, pin) {
   return nodes;
 }
 
-for (const { name, parser, styles, pinned } of VERSIONS) {
+for (const { name, version, parser, styles, pinned } of VERSIONS) {
   const selectors = Object.keys(styles).flatMap((selector) => selector.split(' '));
   const nodeNames = new Set(parser.nodeSet.types.map((type) => type.name));
   const unknown = selectors.flatMap((path) => path.split('/')).filter((node) => !nodeNames.has(node));
@@ -161,7 +166,7 @@ for (const { name, parser, styles, pinned } of VERSIONS) {
   }
 
   for (const pin of pinned) {
-    const actual = runsOf(parser, pin);
+    const actual = runsOf(version, pin);
     if (write) {
       fs.writeFileSync(pathOf(pin.runs), `${actual.join('\n')}\n`);
       console.log(`Styles: ${pin.runs}, ${actual.length} runs written.`);

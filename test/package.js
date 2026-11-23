@@ -3,9 +3,11 @@
 // error, and offers its completions; that efx(kind, { version: 1 }) reads each kind of EFX-1 text,
 // highlighted as EFX-2 is, and offers none; that each text of the demo page reads with no error; that
 // the EFX colours are the editor's default colours and give way to an application's own, and to the
-// dark ones with the dark look; and that an
-// unknown kind or version is refused. It reads the build in dist/, so it runs after `npm run build`.
-// What the completions offer is checked by efx2/completions.js.
+// dark ones with the dark look; that efxHighlights gives the ranges and tags an editor colours, with
+// tags the types name; that the TextMate grammars are exported; and that an unknown kind or version
+// is refused. It reads the build in dist/, so it runs after `npm run build`. What the completions
+// offer is checked by efx2/completions.js, what inferEfx finds by inference.js, and the TextMate
+// grammars by textmate.js.
 
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
@@ -13,8 +15,13 @@ import { EditorState } from '@codemirror/state';
 import { HighlightStyle, ensureSyntaxTree, highlightingFor, syntaxHighlighting } from '@codemirror/language';
 import { highlightTree, tags } from '@lezer/highlight';
 import * as entryPoint from '../dist/index.js';
+import { EFX1_STYLES } from '../dist/efx1/efx1Highlighting.js';
+import { EFX2_STYLES } from '../dist/efx2/efx2Highlighting.js';
 
-const { efx, efxHighlightStyle } = entryPoint;
+const { efx, efxHighlights, efxHighlightStyle } = entryPoint;
+
+// Names each range by its tag, as efxHighlights does.
+const TAG_NAMES = { style: (tags) => tags.map(String).join(' ') };
 
 // A text of each kind, and the top that must read it.
 const KINDS = [
@@ -47,9 +54,33 @@ function errorsIn(tree) {
 }
 
 const CHECKS = {
-  'the entry point offers efx, efxSymbols, the light and dark colours and looks': () => {
-    assert.deepEqual(Object.keys(entryPoint).sort(),
-      ['efx', 'efxDarkHighlightStyle', 'efxDarkTheme', 'efxHighlightStyle', 'efxSymbols', 'efxTheme']);
+  'the entry point offers efx, efxSymbols, the colours and looks, efxHighlights, inferEfx and efxTextMateScopes': () => {
+    assert.deepEqual(Object.keys(entryPoint).sort(), ['efx', 'efxDarkHighlightStyle', 'efxDarkTheme', 'efxHighlightStyle',
+      'efxHighlights', 'efxSymbols', 'efxTextMateScopes', 'efxTheme', 'inferEfx']);
+  },
+  ...Object.fromEntries([...KINDS.map((reading) => ({ ...reading, version: 2 })), ...EFX1_KINDS.map((reading) => ({ ...reading, version: 1 }))]
+    .map(({ kind, text, version }) => [`efxHighlights gives what an editor colours in EFX-${version} ${kind} text`, () => {
+      const tree = treeOf(EditorState.create({ doc: text, extensions: [efx(kind, { version })] }));
+      const colouredByEditor = [];
+      highlightTree(tree, TAG_NAMES, (from, to, tag) => colouredByEditor.push({ from, to, tag }));
+      assert.ok(colouredByEditor.length > 0);
+      assert.deepEqual(efxHighlights(text, kind, { version }), colouredByEditor);
+    }])),
+  'efxHighlights names each range by one tag, which the types name, and which has a TextMate scope but for name': () => {
+    const declared = fs.readFileSync(new URL('../dist/index.d.ts', import.meta.url), 'utf8')
+      .match(/export type EfxHighlightTag =([^;]*);/)[1].match(/'[^']+'/g).map((name) => name.slice(1, -1));
+    const used = new Set([...Object.values(EFX2_STYLES), ...Object.values(EFX1_STYLES)].map(String));
+    assert.deepEqual([...used].filter((tag) => !declared.includes(tag)), []);
+    assert.deepEqual(Object.keys(entryPoint.efxTextMateScopes).sort(), declared.filter((tag) => tag !== 'name').sort());
+    const sample = KINDS[0].text;
+    assert.ok(efxHighlights(sample, 'template').every(({ tag }) => declared.includes(tag)));
+  },
+  'the TextMate grammars are exported': () => {
+    const { exports } = JSON.parse(fs.readFileSync(new URL('../package.json', import.meta.url), 'utf8'));
+    for (const [name, scopeName] of [['./efx2.tmLanguage.json', 'source.efx2'], ['./efx1.tmLanguage.json', 'source.efx1']]) {
+      const grammar = JSON.parse(fs.readFileSync(new URL(exports[name], new URL('../', import.meta.url)), 'utf8'));
+      assert.equal(grammar.scopeName, scopeName);
+    }
   },
   'the dark look gives the editor the dark colours': () => {
     const state = EditorState.create({ extensions: [efx('template'), entryPoint.efxDarkTheme] });
@@ -132,6 +163,9 @@ const CHECKS = {
     assert.throws(() => efx('rules', { version: 1 }), RangeError);
     assert.throws(() => efx('template', { version: 3 }), RangeError);
     assert.throws(() => efx('template', { version: '1' }), RangeError);
+    assert.throws(() => efxHighlights('x', 'rule'), RangeError);
+    assert.throws(() => efxHighlights('x', 'rules', { version: 1 }), RangeError);
+    assert.throws(() => efxHighlights('x', 'template', { version: 3 }), RangeError);
   },
 };
 
