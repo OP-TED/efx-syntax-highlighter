@@ -41,7 +41,7 @@ const READINGS = {
  * completions also use, as the language's parser, which reuses an earlier tree only before the first
  * change to the text (lexer/EditorParser.js).
  */
-function languageOf(versionParser, reading) {
+function defineLanguage(versionParser, reading) {
   const data = defineLanguageFacet();
   const parser = versionParser.configure({ ...reading, props: [languageDataProp.add((type) => (type.isTop ? data : undefined))] });
   return { parser, language: new Language(data, new EditorParser(parser), [], "efx") };
@@ -49,10 +49,28 @@ function languageOf(versionParser, reading) {
 
 // The languages of each version, by kind, each with its parser.
 const LANGUAGES = new Map(Object.entries(READINGS).map(([version, { parser: versionParser, kinds }]) =>
-  [Number(version), new Map(Object.entries(kinds).map(([kind, reading]) => [kind, languageOf(versionParser, reading)]))]));
+  [Number(version), new Map(Object.entries(kinds).map(([kind, reading]) => [kind, defineLanguage(versionParser, reading)]))]));
 
 // The EFX colours, used where the application gives the editor no colours of its own.
 const DEFAULT_COLOURS = syntaxHighlighting(efxHighlightStyle, { fallback: true });
+
+/**
+ * The language of one kind of EFX text of one version of EFX, with its parser. The kinds are
+ * "template", "rules", "expression" and "bare-expression", and EFX-1 has no rules files; any other
+ * kind or version is refused with a RangeError.
+ */
+export function languageOf(kind, version) {
+  const languages = LANGUAGES.get(version);
+  if (languages === undefined) {
+    throw new RangeError(`Unknown version of EFX: ${version}. The versions are ${[...LANGUAGES.keys()].join(", ")}.`);
+  }
+  const language = languages.get(kind);
+  if (language === undefined) {
+    throw new RangeError(`Unknown kind of EFX-${version} text: ${kind}. `
+      + `The kinds are ${[...languages.keys()].join(", ")}.`);
+  }
+  return language;
+}
 
 /**
  * EFX support for an editor that holds one kind of EFX text of one version of EFX. The kinds are
@@ -60,15 +78,7 @@ const DEFAULT_COLOURS = syntaxHighlighting(efxHighlightStyle, { fallback: true }
  * `{ version: 1 }`, and EFX-1 has no rules files.
  */
 export function efx(kind, { version = 2 } = {}) {
-  const languages = LANGUAGES.get(version);
-  if (languages === undefined) {
-    throw new RangeError(`Unknown version of EFX: ${version}. The versions are ${[...LANGUAGES.keys()].join(", ")}.`);
-  }
-  const { language, parser } = languages.get(kind) ?? {};
-  if (language === undefined) {
-    throw new RangeError(`Unknown kind of EFX-${version} text: ${kind}. `
-      + `The kinds are ${[...languages.keys()].join(", ")}.`);
-  }
+  const { language, parser } = languageOf(kind, version);
   if (!READINGS[version].completions) {
     return new LanguageSupport(language, [DEFAULT_COLOURS]);
   }

@@ -18,9 +18,10 @@ export const EFX1_STYLES = {
   "DateFunction TimeFunction DayTimeDurationFunction YearMonthDurationFunction AddMeasure SubtractMeasure": t.function(t.keyword),
   "DistinctValuesFunction UnionFunction IntersectFunction ExceptFunction SequenceEqualFunction": t.function(t.keyword),
 
-  // Literals, and the outline numbers of a template.
-  "STRING UUIDV4 INTEGER DECIMAL DATE TIME DayTimeDurationLiteral YearMonthDurationLiteral": t.literal,
-  "True False Always Never OutlineNumber": t.literal,
+  // Literals, and the outline numbers of a template, with strings and numbers apart, as in EFX-2.
+  STRING: t.string,
+  "INTEGER DECIMAL": t.number,
+  "UUIDV4 DATE TIME DayTimeDurationLiteral YearMonthDurationLiteral True False Always Never OutlineNumber": t.literal,
 
   // The data of a notice: fields, nodes and attributes.
   "FieldId NodeId BtId AttributeReference/Identifier": t.propertyName,

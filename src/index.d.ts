@@ -48,3 +48,61 @@ export const efxDarkHighlightStyle: HighlightStyle;
  * adds instead of efxTheme on a dark screen.
  */
 export const efxDarkTheme: Extension;
+
+/** The name of a highlight tag, as efxHighlights gives it: the tags of the EFX style tables, as Lezer writes them. */
+export type EfxHighlightTag =
+  | 'keyword'
+  | 'className'
+  | 'typeName'
+  | 'function(keyword)'
+  | 'literal'
+  | 'string'
+  | 'number'
+  | 'propertyName'
+  | 'variableName'
+  | 'function(name)'
+  | 'special(name)'
+  | 'special(string)'
+  | 'operator'
+  | 'punctuation'
+  | 'bracket'
+  | 'lineComment'
+  | 'name';
+
+/** A range of an EFX text that a highlight tag colours. */
+export interface EfxHighlight {
+  /** Where the range starts, as an offset in the text. */
+  from: number;
+  /** Where it ends: the offset after its last character. */
+  to: number;
+  /** The name of its highlight tag. */
+  tag: EfxHighlightTag;
+}
+
+/** The highlighted ranges of a text of one kind of EFX-2 text, in their order, as an editor's parser reads it. */
+export function efxHighlights(text: string, kind: EfxKind, options?: { version?: 2 }): EfxHighlight[];
+/** The highlighted ranges of a text of one kind of EFX-1 text, in their order, as an editor's parser reads it. */
+export function efxHighlights(text: string, kind: EfxCommonKind, options: { version: 1 }): EfxHighlight[];
+/** The highlighted ranges of a kind of text both versions have, in a version chosen when the application runs. */
+export function efxHighlights(text: string, kind: EfxCommonKind, options?: { version?: 1 | 2 }): EfxHighlight[];
+
+/** A version of EFX and a kind of file of it: EFX-1 has no rules files. */
+export type EfxReading = { version: 2; kind: 'template' | 'rules' } | { version: 1; kind: 'template' };
+
+/**
+ * The version of EFX and the kind of file that a text reads as best: the reading of its start with
+ * the fewest errors, EFX-2 before EFX-1 and a template before rules on a tie.
+ */
+export function inferEfx(text: string): EfxReading;
+/** The kind of EFX-2 file that a text reads as best, for an application that knows the text is EFX-2. */
+export function inferEfx(text: string, options: { version: 2 }): EfxReading & { version: 2 };
+/** An EFX-1 text is a template: EFX-1 has no rules files. */
+export function inferEfx(text: string, options: { version: 1 }): EfxReading & { version: 1 };
+/** The version and kind, or the kind of the version given. */
+export function inferEfx(text: string, options?: { version?: 1 | 2 }): EfxReading;
+
+/**
+ * The TextMate scope of each highlight tag, as the package's TextMate grammars scope the tokens the
+ * tag colours. The tag of plain names, name, has none.
+ */
+export const efxTextMateScopes: Readonly<Record<Exclude<EfxHighlightTag, 'name'>, string>>;

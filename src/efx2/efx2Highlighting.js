@@ -45,10 +45,13 @@ export const EFX2_STYLES = {
   "SubsequenceFunction IndexOfFunction PreferredLanguageFunction PreferredLanguageTextFunction": t.function(t.keyword),
   "SortFunction ReverseFunction SplitFunction": t.function(t.keyword),
 
-  // Literals, the notice types of a rule, the path of an include and the outline markers of a template.
-  "StringLiteral UuidV4Literal IntegerLiteral DecimalLiteral True False Always Never DateLiteral TimeLiteral": t.literal,
-  "DayTimeDurationLiteral YearMonthDurationLiteral NumericLiteral/Minus NoticeType/Identifier NoticeTypeRange/Minus": t.literal,
-  "IncludePath OutlineNumber AutoOutlineNumber NoOutlineNumber": t.literal,
+  // Literals, the notice types of a rule, the path of an include and the outline markers of a template:
+  // strings and numbers with the tags of their own, which are literals too, so that an editor can tell
+  // them apart.
+  "StringLiteral IncludePath": t.string,
+  "IntegerLiteral DecimalLiteral NumericLiteral/Minus": t.number,
+  "UuidV4Literal True False Always Never DateLiteral TimeLiteral DayTimeDurationLiteral YearMonthDurationLiteral": t.literal,
+  "NoticeType/Identifier NoticeTypeRange/Minus OutlineNumber AutoOutlineNumber NoOutlineNumber": t.literal,
 
   // The data of a notice: fields, nodes and attributes.
   "FieldId NodeId BtId": t.propertyName,

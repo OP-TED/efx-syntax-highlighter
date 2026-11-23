@@ -4,7 +4,10 @@
 import { autocompletion } from '@codemirror/autocomplete';
 import type { LanguageSupport } from '@codemirror/language';
 import { EditorState, type Extension } from '@codemirror/state';
-import { efx, efxDarkHighlightStyle, efxDarkTheme, efxHighlightStyle, efxSymbols, efxTheme, type EfxCommonKind, type EfxKind } from '@op-ted/efx-syntax-highlighter';
+import {
+  efx, efxDarkHighlightStyle, efxDarkTheme, efxHighlights, efxHighlightStyle, efxSymbols, efxTextMateScopes, efxTheme, inferEfx,
+  type EfxCommonKind, type EfxHighlight, type EfxHighlightTag, type EfxKind, type EfxReading,
+} from '@op-ted/efx-syntax-highlighter';
 
 const template: LanguageSupport = efx('template');
 const rules: LanguageSupport = efx('rules', { version: 2 });
@@ -21,6 +24,14 @@ const ids: string[] = [...fields, ...nodes].map((entry) => (typeof entry === 'st
 const types: (string | undefined)[] = fields.map((entry) => (typeof entry === 'string' ? undefined : entry.type));
 const extensions: Extension[] = [template, rules, efx1, chosen, optional, autocompletion(), efxTheme, efxDarkTheme];
 const colours = [efxHighlightStyle.module, efxDarkHighlightStyle.module];
+const highlights: EfxHighlight[] = [...efxHighlights('WITH ND-Root DISPLAY x;', 'template'),
+  ...efxHighlights('{ND-Root} x', 'template', { version: 1 }), ...efxHighlights('1 + 2', common, { version })];
+const tags: EfxHighlightTag[] = highlights.map(({ tag }) => tag);
+const reading: EfxReading = inferEfx('WITH ND-Root DISPLAY x;');
+const readingKind: 'template' | 'rules' = reading.kind;
+const efx2Kind: 'template' | 'rules' = inferEfx('--- STAGE 1a ---', { version: 2 }).kind;
+const efx1Kind: 'template' = inferEfx('{ND-Root} x', { version: 1 }).kind;
+const keywordScope: string = efxTextMateScopes.keyword;
 
 // @ts-expect-error an unknown kind
 efx('templat');
@@ -32,5 +43,15 @@ efx('template', { version: 3 });
 efx('template', { versoin: 2 });
 // @ts-expect-error an id that is not text
 efxSymbols.of({ fields: [1] });
+// @ts-expect-error EFX-1 has no rules files to highlight
+efxHighlights('x', 'rules', { version: 1 });
+// @ts-expect-error a highlight has no colour of its own
+highlights[0].colour;
+// @ts-expect-error plain names have no scope
+efxTextMateScopes.name;
+// @ts-expect-error an unknown version
+inferEfx('x', { version: 3 });
+// @ts-expect-error an EFX-1 reading is of a template
+const efx1Rules: EfxReading = { version: 1, kind: 'rules' };
 
-export { colours, extensions, ids, types };
+export { colours, efx1Kind, efx1Rules, efx2Kind, extensions, ids, keywordScope, readingKind, tags, types };
